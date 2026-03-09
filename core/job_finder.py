@@ -18,6 +18,7 @@ class JobFinder:
 
 
     def get_cookies(self):
+        """Load Chrome cookies to get session credentials"""
         try:
             self.driver.get("https://ca.indeed.com")
             with open("cookies.json", "r") as cookie_file:
@@ -38,14 +39,15 @@ class JobFinder:
 
 
     def get_source(self, url: str) -> str:
-        """use webdriver to open page and get source, load get_cookies first"""
+        """use webdriver to open page and get source, must load get_cookies to log in"""
         self.driver.get(url)
         time.sleep(3)
         return self.driver.page_source
 
 
-    def find_job(self, keywords, locations, radii, data):
-        known_id = [data[y]['id'] for y in range(len(data))]
+    def find_job(self, data: list[dict], keywords: list, locations: list, radii: list) -> list[dict]:
+        """Browse result pages to get raw data including links to job details"""
+        known_id = [data[y]['indeed_id'] for y in range(len(data))]
         for keyword in keywords:
             for location in locations:
                 for radius in radii:
@@ -69,7 +71,7 @@ class JobFinder:
                             job_location = job.find("div", attrs={"data-testid": "text-location"}).get_text()
                             if job_id not in known_id:
                                 data.append({
-                                    "id": job_id,
+                                    "indeed_id": job_id,
                                     "link": INDEED_URL + job_link,
                                     "title": title,
                                     "company": company,
@@ -88,7 +90,8 @@ class JobFinder:
         return element.get_text()
 
 
-    def parse_job_detail(self, job_data):
+    def parse_job_detail(self, job_details: dict) -> dict:
+        """Browse a job description page to extract its data and complete its entry with the missing information"""
         try:
             show_more = self.driver.find_element(
                 By.CSS_SELECTOR,
@@ -105,46 +108,30 @@ class JobFinder:
             label = btn.get_text(strip=True)
             skills += label + ", "
         skills = skills[:-2] if skills else None
-        job_data.update({
+        job_details.update({
             "job_type": job_type,
             "skills": skills,
             "description": description,
             "time_stamp": int(str(time.time()).split('.')[0]),
             "is_applied": False
         })
-        return job_data
+        return job_details
 
 
-    @staticmethod
-    def load_job_data() -> list:
-        try:
-            with open("jobs.json", "r", encoding="utf-8") as file:
-                data = json.load(file)
-        except FileNotFoundError:
-            data = []
-        return data
-
-
-    def get_job(self, search_keywords, search_locations, search_radii):
-        data = self.load_job_data()
-        self.find_job(search_keywords, search_locations, search_radii, data)
-        if len(data) == 0:
-            return None
-        else:
-            for x in range(len(data)):
-                if data[x].get('description'):
-                    continue
-                self.get_source(data[x]["link"])
-                data[x] = self.parse_job_detail(data[x])
-            data = [job for job in data if job.get("description")]
-            with open("jobs.json", "w", encoding="utf-8") as file:
-                json.dump(data, file, indent=4, ensure_ascii=False)
-            return None
-
-
-    def job_finder(self, search_keywords, search_locations, search_radii,):
-        """run the job finder"""
+    def get_job(self, *, data: list[dict], keywords: list, locations: list, radii: list):
+        """Job finder main function/orchestrator, returns None or new data"""
         self.get_cookies()
-        self.get_job(search_keywords, search_locations, search_radii)
-        self.driver.quit()
-        return
+        try:
+            self.find_job(data, keywords, locations, radii)
+            if len(data) == 0:
+                return None
+            else:
+                for x in range(len(data)):
+                    if data[x].get('description'):
+                        continue
+                    self.get_source(data[x]["link"])
+                    data[x] = self.parse_job_detail(data[x])
+                data = [job for job in data if job.get("description")]
+        finally:
+            self.driver.quit()
+        return data

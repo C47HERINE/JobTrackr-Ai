@@ -1,37 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for
-import json
-import os
-# from flask_sqlalchemy import SQLAlchemy
-# from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-# from sqlalchemy import Integer, String, Float
+from core import JobRepository
+
 
 app = Flask(__name__)
 
-# class Base(DeclarativeBase):
-#     pass
-#
-# app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///<name of database>.db"
-# db = SQLAlchemy(model_class=Base)
-# db.init_app(app)
-
-
-JOBS_FILE = "jobs.json"
-
-
-def load_jobs():
-    if not os.path.exists(JOBS_FILE):
-        return []
-    with open(JOBS_FILE, "r", encoding="utf-8") as file_handle:
-        job_data = json.load(file_handle)
-    for job in job_data:
-        location = job.get("location", "")
-        job["_city"] = location.split(",")[0].strip() if location else ""
-    return job_data
-
-
-def save_jobs(job_list):
-    with open(JOBS_FILE, "w", encoding="utf-8") as file_handle:
-        json.dump(job_list, file_handle, indent=2, ensure_ascii=False)
+db = JobRepository()
 
 
 def compute_statistics(job_list):
@@ -44,7 +17,7 @@ def compute_statistics(job_list):
 
 
 def list_cities(job_list):
-    return sorted({job["_city"] for job in job_list if job["_city"]})
+    return sorted({job["city"] for job in job_list if job["city"]})
 
 
 def filter_jobs(job_list):
@@ -65,7 +38,7 @@ def filter_jobs(job_list):
             continue
         if company_filter and company_filter not in job.get("company", "").lower():
             continue
-        if city_filter and job.get("_city") != city_filter:
+        if city_filter and job.get("city") != city_filter:
             continue
         if applied_filter == "yes" and not job.get("is_applied"):
             continue
@@ -77,7 +50,7 @@ def filter_jobs(job_list):
 
 @app.route("/")
 def index():
-    job_list = load_jobs()
+    job_list = db.load_jobs()
     filtered_jobs = filter_jobs(job_list)
     selected_job_id = request.args.get("job")
     selected_job = None
@@ -101,7 +74,7 @@ def index():
 
 @app.route("/job/<job_id>/update", methods=["POST"])
 def update_job(job_id):
-    job_list = load_jobs()
+    job_list = db.load_jobs()
     decision_value = request.form.get("decision", "")
     applied_value = "applied" in request.form
     for job in job_list:
@@ -109,7 +82,7 @@ def update_job(job_id):
             job["should_apply"] = decision_value
             job["is_applied"] = applied_value
             break
-    save_jobs(job_list)
+    db.save_jobs(job_list)
     return redirect(url_for("index", job=job_id))
 
 
