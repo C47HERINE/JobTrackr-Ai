@@ -48,6 +48,7 @@ def filter_jobs(job_list):
     filtered_results.sort(key=lambda job_item: int(job_item.get("time_stamp", 0)), reverse=True)
     return filtered_results
 
+
 @app.route("/")
 def index():
     job_list = db.load_jobs()
@@ -94,7 +95,6 @@ def view_job(job_id):
 @app.route("/reload")
 def reload_jobs():
     return redirect(url_for("index"))
-
 
 
 if __name__ == "__main__":

@@ -21,7 +21,7 @@ class JobList(Base):
     answer: Mapped[str] = mapped_column(Text, nullable=True)
     time_stamp: Mapped[int] = mapped_column(Integer, nullable=True)
     is_applied: Mapped[bool] = mapped_column(nullable=True)
-    city: Mapped[str] = mapped_column(String(250), nullable=False)
+    city: Mapped[str] = mapped_column(String(250), nullable=True)
 
 
 class JobRepository:

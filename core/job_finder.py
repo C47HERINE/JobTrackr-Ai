@@ -2,10 +2,13 @@ import json
 import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.common import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
+
 INDEED_URL = "https://ca.indeed.com"
+
 
 class JobFinder:
     def __init__(self):
@@ -68,14 +71,16 @@ class JobFinder:
                                 continue
                             title = job.find("a", class_="jcs-JobTitle").get_text()
                             company = job.find("span", attrs={"data-testid": "company-name"}).get_text()
-                            job_location = job.find("div", attrs={"data-testid": "text-location"}).get_text()
+                            job_location = (job.find("div", attrs={"data-testid": "text-location"})
+                                            .get_text().split("·")[-1].strip())
                             if job_id not in known_id:
                                 data.append({
                                     "indeed_id": job_id,
                                     "link": INDEED_URL + job_link,
                                     "title": title,
                                     "company": company,
-                                    "location": job_location
+                                    "location": job_location,
+                                    "city": job_location.split(",")[0].strip() if job_location else "",
                                 })
                                 known_id.append(job_id)
                         page += 10
@@ -98,8 +103,8 @@ class JobFinder:
                 '[aria-label="Skills"] button.js-match-insights-provider-1s05l8k'
             )
             self.driver.execute_script("arguments[0].click();", show_more)
-        except Exception as e:
-            print(e)
+        except NoSuchElementException:
+            pass
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
         job_type = self.get_text_from_selector(soup, "#salaryInfoAndJobType")
         description = self.get_text_from_selector(soup, "#jobDescriptionText")
@@ -112,7 +117,7 @@ class JobFinder:
             "job_type": job_type,
             "skills": skills,
             "description": description,
-            "time_stamp": int(str(time.time()).split('.')[0]),
+            "time_stamp": int(time.time()),
             "is_applied": False
         })
         return job_details

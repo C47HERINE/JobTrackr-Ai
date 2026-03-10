@@ -20,8 +20,6 @@ updated_data = finder.get_job(
     radii=search_config['radii']
     )
 
-evaluated_data = evaluator.get_advice(updated_data)
-
 if updated_data:
     evaluated_data = evaluator.get_advice(updated_data)
     db.save_jobs(evaluated_data)
