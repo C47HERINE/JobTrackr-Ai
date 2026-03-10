@@ -48,9 +48,9 @@ class JobFinder:
     def find_job(self, data: list[dict], keywords: list, locations: list, radii: list) -> list[dict]:
         """Browse result pages to get raw data including links to job details"""
         known_id = [data[y]['indeed_id'] for y in range(len(data))]
-        for keyword in keywords:
-            for location in locations:
-                for radius in radii:
+        for location in locations:
+            for radius in radii:
+                for keyword in keywords:
                     page = 0
                     while page <= 50:
                         search_url = f"{INDEED_URL}/jobs?q={keyword}&l={location}%2C%20QC&radius={radius}&start={page}"
