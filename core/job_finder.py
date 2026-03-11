@@ -23,8 +23,8 @@ class JobFinder:
     def get_cookies(self):
         """Load Chrome cookies to get session credentials"""
         try:
-            self.driver.get("https://ca.indeed.com")
-            with open("cookies.json", "r") as cookie_file:
+            self.driver.get(INDEED_URL + "/")
+            with open("user/cookies/cookies.json", "r") as cookie_file:
                 cookies = json.load(cookie_file)
             for cookie in cookies:
                 cookie_dict = {
@@ -38,6 +38,7 @@ class JobFinder:
                 self.driver.add_cookie(cookie_dict)
             self.driver.refresh()
         except FileNotFoundError:
+            print("cookies not found")
             pass
 
 

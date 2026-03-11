@@ -1,10 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
-from core import JobRepository
-
-
-app = Flask(__name__)
-
-db = JobRepository()
+from flask import request
 
 
 def compute_statistics(job_list):
@@ -47,55 +41,3 @@ def filter_jobs(job_list):
         filtered_results.append(job)
     filtered_results.sort(key=lambda job_item: int(job_item.get("time_stamp", 0)), reverse=True)
     return filtered_results
-
-
-@app.route("/")
-def index():
-    job_list = db.load_jobs()
-    filtered_jobs = filter_jobs(job_list)
-    selected_job_id = request.args.get("job")
-    selected_job = None
-    if selected_job_id:
-        for job in job_list:
-            if str(job.get("id")) == selected_job_id:
-                selected_job = job
-                break
-    if not selected_job and filtered_jobs:
-        selected_job = filtered_jobs[0]
-    statistics = compute_statistics(job_list)
-    city_list = list_cities(job_list)
-    return render_template(
-        "index.html",
-        jobs=filtered_jobs,
-        job=selected_job,
-        cities=city_list,
-        stats=statistics
-    )
-
-
-@app.route("/job/<job_id>/update", methods=["POST"])
-def update_job(job_id):
-    job_list = db.load_jobs()
-    decision_value = request.form.get("decision", "")
-    applied_value = "applied" in request.form
-    for job in job_list:
-        if str(job.get("id")) == job_id:
-            job["should_apply"] = decision_value
-            job["is_applied"] = applied_value
-            break
-    db.save_jobs(job_list)
-    return redirect(url_for("index", job=job_id))
-
-
-@app.route("/job/<job_id>")
-def view_job(job_id):
-    return redirect(url_for("index", job=job_id))
-
-
-@app.route("/reload")
-def reload_jobs():
-    return redirect(url_for("index"))
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
