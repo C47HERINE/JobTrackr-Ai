@@ -1,6 +1,3 @@
-I'll start by exploring the repository to understand its structure and purpose, then create a comprehensive README file.Let me get more details about the key files in the project:Perfect! I now have the information I need to write a comprehensive README for the JobTrackr-Ai repository. Let me create a professional README file based on the code structure and functionality.
-
-```markdown name=README.md
 # JobTrackr-Ai
 
 An intelligent job application tracking system that uses AI to help manage, evaluate, and apply to job opportunities automatically.
