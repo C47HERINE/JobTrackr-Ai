@@ -1,0 +1,10 @@
+{
+  "comment": "rename the file to seach_config.json and add your preferred search keywords and location here.",
+  "keywords": [
+    "search",
+    "keywords",
+    "here"
+  ],
+  "locations": ["city"],
+  "radii": ["15", "25"]
+}

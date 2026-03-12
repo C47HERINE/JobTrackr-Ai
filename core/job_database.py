@@ -1,3 +1,4 @@
+from threading import Lock
 from sqlalchemy import create_engine, Integer, String, Text, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
@@ -26,7 +27,8 @@ class JobList(Base):
 
 class JobRepository:
     def __init__(self):
-        self.engine = create_engine("sqlite:///jobs.db", echo=False)
+        self.write_lock = Lock()
+        self.engine = create_engine("sqlite:///data/jobs.db", echo=False)
         self.Session = sessionmaker(bind=self.engine)
         Base.metadata.create_all(self.engine)
 
@@ -36,7 +38,7 @@ class JobRepository:
             return [job.__dict__ for job in result.scalars().all()]
 
 
-    def create_job(self, job: dict):
+    def _create_job(self, job: dict):
         with self.Session() as session:
             new_job = JobList(
                 indeed_id=job['indeed_id'],
@@ -57,7 +59,7 @@ class JobRepository:
             session.commit()
 
 
-    def update_by_indeed_id(self, job: dict):
+    def _update_by_indeed_id(self, job: dict):
         with self.Session() as session:
             job_to_update = session.execute(select(JobList).where(JobList.indeed_id == job['indeed_id'])).scalar_one_or_none()
             if job_to_update:
@@ -77,10 +79,11 @@ class JobRepository:
 
 
     def save_jobs(self, new_jobs: list[dict]):
-        all_jobs = self.load_jobs()
-        existing_ids = [job['indeed_id'] for job in all_jobs]
-        for job in new_jobs:
-            if job["indeed_id"] not in existing_ids:
-                self.create_job(job)
-            else:
-                self.update_by_indeed_id(job)
+        with self.write_lock:
+            all_jobs = self.load_jobs()
+            existing_ids = [job['indeed_id'] for job in all_jobs]
+            for job in new_jobs:
+                if job["indeed_id"] not in existing_ids:
+                    self._create_job(job)
+                else:
+                    self._update_by_indeed_id(job)

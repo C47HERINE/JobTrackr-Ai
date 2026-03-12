@@ -293,7 +293,7 @@ Jobs
 
 {% for job in jobs %}
 
-<a href="{{ url_for('index',job=job.id,decision=request.args.get('decision'),title=request.args.get('title'),company=request.args.get('company'),city=request.args.get('city'),applied=request.args.get('applied')) }}"
+<a href="{{ url_for('dashboard.index',job=job.id,decision=request.args.get('decision'),title=request.args.get('title'),company=request.args.get('company'),city=request.args.get('city'),applied=request.args.get('applied')) }}"
 class="job-link job-card-item block p-3 rounded-lg border border-border bg-panel2 hover:bg-gray-800 transition">
 
 <div class="flex items-start gap-2">

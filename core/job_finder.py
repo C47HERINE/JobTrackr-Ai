@@ -23,8 +23,8 @@ class JobFinder:
     def get_cookies(self):
         """Load Chrome cookies to get session credentials"""
         try:
-            self.driver.get("https://ca.indeed.com")
-            with open("cookies.json", "r") as cookie_file:
+            self.driver.get(INDEED_URL + "/")
+            with open("user/cookies/cookies.json", "r") as cookie_file:
                 cookies = json.load(cookie_file)
             for cookie in cookies:
                 cookie_dict = {
@@ -38,6 +38,7 @@ class JobFinder:
                 self.driver.add_cookie(cookie_dict)
             self.driver.refresh()
         except FileNotFoundError:
+            print("cookies not found")
             pass
 
 
@@ -55,7 +56,7 @@ class JobFinder:
             for radius in radii:
                 for keyword in keywords:
                     page = 0
-                    while page <= 50:
+                    while page < 50:
                         search_url = f"{INDEED_URL}/jobs?q={keyword}&l={location}%2C%20QC&radius={radius}&start={page}"
                         _soup = BeautifulSoup(self.get_source(url=search_url), 'html.parser')
                         jobs = _soup.find_all("li", class_="css-1ac2h1w eu4oa1w0")
