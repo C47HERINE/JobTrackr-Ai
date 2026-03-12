@@ -28,7 +28,7 @@ class JobList(Base):
 class JobRepository:
     def __init__(self):
         self.write_lock = Lock()
-        self.engine = create_engine("sqlite:///jobs.db", echo=False)
+        self.engine = create_engine("sqlite:///data/jobs.db", echo=False)
         self.Session = sessionmaker(bind=self.engine)
         Base.metadata.create_all(self.engine)
 

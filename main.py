@@ -1,32 +1,43 @@
-from core import JobFinder, Evaluator, JobRepository
 from app import create_app
+from core import JobFinder, Evaluator, JobRepository
+from threading import Thread
 import json
+import time
 
-evaluator = Evaluator()
-finder = JobFinder()
 db = JobRepository()
 app = create_app(db)
+evaluator = Evaluator()
+finder = JobFinder()
 
-job_data = db.load_jobs()
+def search():
+    while True:
+        try:
+            with open("user/state.json", "r") as json_file:
+                state = json.load(json_file)
+        except FileNotFoundError:
+            state = {"last_run": 0}
 
-with open('config/search_config.json', 'r') as file:
-    search_config = json.load(file)
+        if time.time() - state["last_run"] >= 21600:
+            with open('user/search_config.json', 'r') as file:
+                search_config = json.load(file)
+            updated_data = finder.get_job(
+                data=db.load_jobs(),
+                keywords=search_config['keywords'],
+                locations=search_config['locations'],
+                radii=search_config['radii']
+            )
+            new_jobs = [job for job in updated_data if job.get("decision") not in {"apply", "pass"}]
+            if new_jobs:
+                evaluated_data = evaluator.get_advice(updated_data)
+                db.save_jobs(evaluated_data)
+            state["last_run"] = int(time.time())
+            with open("user/state.json", "w") as json_file:
+                json.dump(state, json_file, indent=4)
+            time.sleep(900)
 
-updated_data = finder.get_job(
-    data=job_data,
-    keywords=search_config['keywords'],
-    locations=search_config['locations'],
-    radii=search_config['radii']
-    )
-
-new_jobs = [job for job in updated_data if job.get("decision") not in {"apply", "pass"}]
-
-if new_jobs:
-    evaluated_data = evaluator.get_advice(updated_data)
-    db.save_jobs(evaluated_data)
+Thread(target=search, daemon=True).start()
 
 app.run()
-
 #TODO add an  additional route/page for jobs with interviews, allow to move from where they are to here
 
 #TODO make a search route/page to target specific job data for interview/response
@@ -35,12 +46,4 @@ app.run()
 
 #TODO in the database: log the job applied, the job pending for manual offsite application and n/a if ai answered no
 
-#TODO create a user login route
-
-#TODO set a user db
-
-#TODO  create a state function to log last time search ran
-
-#TODO establish a run function so if last run was 6 hours + then search must run
-
-#TODO implement a tick for recurring automated searches
+#TODO create a user login route and set a user db
