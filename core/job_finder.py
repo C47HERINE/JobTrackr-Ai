@@ -56,7 +56,7 @@ class JobFinder:
             for radius in radii:
                 for keyword in keywords:
                     page = 0
-                    while page <= 20:
+                    while page < 50:
                         search_url = f"{INDEED_URL}/jobs?q={keyword}&l={location}%2C%20QC&radius={radius}&start={page}"
                         _soup = BeautifulSoup(self.get_source(url=search_url), 'html.parser')
                         jobs = _soup.find_all("li", class_="css-1ac2h1w eu4oa1w0")
