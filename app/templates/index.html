@@ -1,518 +1,644 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Job Tracker</title>
+    <meta charset="UTF-8">
+    <title>Job Tracker</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-<script>
-tailwind.config = {
-theme:{
-extend:{
-colors:{
-base:"#0f0f0f",
-panel:"#181818",
-panel2:"#202020",
-border:"#2a2a2a",
-soft:"#2f2f2f"
-}
-}
-}
-}
-</script>
+    <script>
+        tailwind.config = {
+        theme:{
+        extend:{
+        colors:{
+        base:"#0f0f0f",
+        panel:"#181818",
+        panel2:"#202020",
+        border:"#2a2a2a",
+        soft:"#2f2f2f"
+        }
+        }
+        }
+        }
+    </script>
 
-<style>
-:root{
-  /* neutral (no accent) */
-  --accent:#94a3b8;             /* slate */
-  --accent-2:#cbd5e1;           /* lighter slate */
-  --accent-soft:rgba(148,163,184,.10);
-  --accent-ring:rgba(148,163,184,.22);
+    <style>
+        :root{
+          --accent:#94a3b8;
+          --accent-2:#cbd5e1;
+          --accent-soft:rgba(148,163,184,.10);
+          --accent-ring:rgba(148,163,184,.22);
 
-  /* semantic colors (consistent everywhere) */
-  --apply:#22c55e;
-  --apply-2:#34d399;
-  --apply-soft:rgba(34,197,94,.16);
-  --apply-ring:rgba(34,197,94,.30);
+          --apply:#22c55e;
+          --apply-2:#34d399;
+          --apply-soft:rgba(34,197,94,.16);
+          --apply-ring:rgba(34,197,94,.30);
 
-  --pass:#ef4444;
-  --pass-2:#fb7185;
-  --pass-soft:rgba(239,68,68,.16);
-  --pass-ring:rgba(239,68,68,.30);
+          --pass:#ef4444;
+          --pass-2:#fb7185;
+          --pass-soft:rgba(239,68,68,.16);
+          --pass-ring:rgba(239,68,68,.30);
 
-  --error:#f59e0b;
-  --error-2:#fbbf24;
-  --error-soft:rgba(245,158,11,.16);
-  --error-ring:rgba(245,158,11,.30);
+          --error:#f59e0b;
+          --error-2:#fbbf24;
+          --error-soft:rgba(245,158,11,.16);
+          --error-ring:rgba(245,158,11,.30);
 
-  --applied:#06b6d4;
-  --applied-2:#22d3ee;
-  --applied-soft:rgba(6,182,212,.16);
-  --applied-ring:rgba(6,182,212,.30);
+          --applied:#06b6d4;
+          --applied-2:#22d3ee;
+          --applied-soft:rgba(6,182,212,.16);
+          --applied-ring:rgba(6,182,212,.30);
 
-  /* neutral primary button */
-  --primary-btn:rgba(148,163,184,.16);
-  --primary-btn-hover:rgba(148,163,184,.22);
-  --primary-btn-border:rgba(255,255,255,.10);
-}
+          --primary-btn:rgba(148,163,184,.16);
+          --primary-btn-hover:rgba(148,163,184,.22);
+          --primary-btn-border:rgba(255,255,255,.10);
+        }
 
-.primary-btn{
-  background:var(--primary-btn);
-  color:#e5e7eb;
-  border:1px solid var(--primary-btn-border);
-}
-.primary-btn:hover{
-  background:var(--primary-btn-hover);
-}
+        .primary-btn{
+          background:var(--primary-btn);
+          color:#e5e7eb;
+          border:1px solid var(--primary-btn-border);
+        }
+        .primary-btn:hover{
+          background:var(--primary-btn-hover);
+        }
 
-/* Borderless colored pills */
-.decision-chip{ border:0 !important; }
-.decision-chip.apply{ background:var(--apply-soft); color:var(--apply-2); }
-.decision-chip.pass{ background:var(--pass-soft); color:var(--pass-2); }
-.decision-chip.error{ background:var(--error-soft); color:var(--error-2); }
-.decision-chip.applied{ background:var(--applied-soft); color:var(--applied-2); }
-.decision-chip.all{ background:rgba(148,163,184,.10); color:#cbd5e1; }
+        .decision-chip{ border:0 !important; }
+        .decision-chip.apply{ background:var(--apply-soft); color:var(--apply-2); }
+        .decision-chip.pass{ background:var(--pass-soft); color:var(--pass-2); }
+        .decision-chip.error{ background:var(--error-soft); color:var(--error-2); }
+        .decision-chip.applied{ background:var(--applied-soft); color:var(--applied-2); }
+        .decision-chip.all{ background:rgba(148,163,184,.10); color:#cbd5e1; }
 
-/* Toolbar radios (no gradients) */
-.filter-radio{ transition:.15s ease; border:0; }
-.filter-radio.all{ color:#cbd5e1; background:rgba(148,163,184,.08); }
-.filter-radio.apply{ color:var(--apply-2); background:var(--apply-soft); }
-.filter-radio.pass{ color:var(--pass-2); background:var(--pass-soft); }
-.filter-radio.applied{ color:var(--applied-2); background:var(--applied-soft); }
-label input:checked + .filter-radio{
-  box-shadow:0 0 0 1px rgba(255,255,255,.05), 0 0 0 2px var(--accent-ring) inset;
-}
+        .filter-radio{ transition:.15s ease; border:0; }
+        .filter-radio.all{ color:#cbd5e1; background:rgba(148,163,184,.08); }
+        .filter-radio.apply{ color:var(--apply-2); background:var(--apply-soft); }
+        .filter-radio.pass{ color:var(--pass-2); background:var(--pass-soft); }
+        .filter-radio.applied{ color:var(--applied-2); background:var(--applied-soft); }
+        label input[type="radio"]:checked + .filter-radio{
+          box-shadow:0 0 0 1px rgba(255,255,255,.05), 0 0 0 2px var(--accent-ring) inset;
+        }
 
-/* Semantic outline for "Mark Applied" */
-.semantic-outline{
-  border:1px solid transparent;
-  background:transparent;
-  color:#e5e7eb;
-}
-.semantic-outline:hover{background:rgba(255,255,255,.03)}
-.semantic-outline.applied{
-  border-color:var(--applied-ring);
-  background:var(--applied-soft);
-}
-.semantic-outline.applied:hover{
-  border-color:var(--applied);
-  box-shadow:0 0 0 1px rgba(255,255,255,.03) inset;
-}
+        .semantic-outline{
+          border:1px solid transparent;
+          background:transparent;
+          color:#e5e7eb;
+        }
+        .semantic-outline:hover{background:rgba(255,255,255,.03)}
+        .semantic-outline.applied{
+          border-color:var(--applied-ring);
+          background:var(--applied-soft);
+        }
+        .semantic-outline.applied:hover{
+          border-color:var(--applied);
+          box-shadow:0 0 0 1px rgba(255,255,255,.03) inset;
+        }
 
-/* Neutral icons / tabs / hover */
-.section-title-icon{color:var(--accent-2) !important;}
-.detail-title-icon{color:var(--accent-2) !important;}
-.job-card-item:hover{
-  border-color:rgba(148,163,184,.28) !important;
-  box-shadow:0 0 0 1px rgba(255,255,255,.02) inset, 0 8px 24px rgba(0,0,0,.18);
-}
-.tab-btn:hover{color:#fff}
-.tab-btn.active{
-  color:#fff;
-  border-bottom:2px solid rgba(148,163,184,.55);
-}
+        .section-title-icon{color:var(--accent-2) !important;}
+        .detail-title-icon{color:var(--accent-2) !important;}
+        .job-card-item:hover{
+          border-color:rgba(148,163,184,.28) !important;
+          box-shadow:0 0 0 1px rgba(255,255,255,.02) inset, 0 8px 24px rgba(0,0,0,.18);
+        }
+        .tab-btn:hover{color:#fff}
+        .tab-btn.active{
+          color:#fff;
+          border-bottom:2px solid rgba(148,163,184,.55);
+        }
 
-/* Subtle neutral contours */
-.panel-contour{
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,.02) inset,
-    0 0 0 1px rgba(148,163,184,.05);
-}
-.panel-contour-cyan{
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,.02) inset,
-    0 0 0 1px rgba(148,163,184,.05);
-}
+        .panel-contour{
+          box-shadow:
+            0 0 0 1px rgba(255,255,255,.02) inset,
+            0 0 0 1px rgba(148,163,184,.05);
+        }
+        .panel-contour-cyan{
+          box-shadow:
+            0 0 0 1px rgba(255,255,255,.02) inset,
+            0 0 0 1px rgba(148,163,184,.05);
+        }
 
-/* Keep left/right panel heights aligned on large screens */
-@media (min-width:1024px){
-  .left-column-height{height:85vh;}
-  .job-list-scroll{height:auto !important; flex:1 1 auto; min-height:0;}
-}
+        .city-dropdown{
+          position:relative;
+        }
 
-::-webkit-scrollbar{width:10px;height:10px}
-::-webkit-scrollbar-track{background:#161616}
-::-webkit-scrollbar-thumb{background:#3a3a3a;border-radius:6px}
-::-webkit-scrollbar-thumb:hover{background:#555}
-</style>
+        .city-dropdown-panel{
+          position:absolute;
+          top:calc(100% + 6px);
+          left:0;
+          width:320px;
+          max-width:min(90vw, 320px);
+          background:#202020;
+          border:1px solid #2a2a2a;
+          border-radius:.75rem;
+          padding:.75rem;
+          box-shadow:0 12px 30px rgba(0,0,0,.35);
+          z-index:50;
+        }
 
+        .city-checkbox{
+          accent-color:#94a3b8;
+        }
+
+        @media (min-width:1024px){
+          .left-column-height{height:85vh;}
+          .job-list-scroll{height:auto !important; flex:1 1 auto; min-height:0;}
+        }
+
+        ::-webkit-scrollbar{width:10px;height:10px}
+        ::-webkit-scrollbar-track{background:#161616}
+        ::-webkit-scrollbar-thumb{background:#3a3a3a;border-radius:6px}
+        ::-webkit-scrollbar-thumb:hover{background:#555}
+    </style>
 </head>
 
 <body class="bg-base text-gray-200">
 
 <div class="max-w-[1600px] mx-auto p-4 lg:p-6">
 
-<!-- SEARCH BAR -->
-<div class="bg-panel border border-border rounded-xl p-4 mb-4 shadow-lg panel-contour">
+    <div class="bg-panel border border-border rounded-xl p-4 mb-4 shadow-lg panel-contour">
+        <form method="GET">
+            <input type="hidden" name="decision" value="{{ request.args.get('decision','') }}">
+            <input type="hidden" name="job" value="{{ request.args.get('job', job.id if job else '') }}">
 
-<form method="GET">
-<input type="hidden" name="decision" value="{{ request.args.get('decision','') }}">
+            {% set selected_cities = request.args.getlist('city') %}
 
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2">
+                <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-2 top-2.5 text-gray-400"></i>
+                    <input
+                            name="title"
+                            placeholder="Title"
+                            value="{{ request.args.get('title','') }}"
+                            class="pl-8 pr-3 py-2 bg-panel2 border border-border rounded-lg text-sm w-full focus:outline-none focus:ring-1 focus:ring-gray-500">
+                </div>
 
-<div class="relative">
-<i data-lucide="search" class="w-4 h-4 absolute left-2 top-2.5 text-gray-400"></i>
-<input name="title"
-placeholder="Title"
-value="{{ request.args.get('title','') }}"
-class="pl-8 pr-3 py-2 bg-panel2 border border-border rounded-lg text-sm w-full focus:outline-none focus:ring-1 focus:ring-gray-500">
+                <div class="relative">
+                    <i data-lucide="building" class="w-4 h-4 absolute left-2 top-2.5 text-gray-400"></i>
+                    <input
+                            name="company"
+                            placeholder="Company"
+                            value="{{ request.args.get('company','') }}"
+                            class="pl-8 pr-3 py-2 bg-panel2 border border-border rounded-lg text-sm w-full focus:outline-none focus:ring-1 focus:ring-gray-500">
+                </div>
+
+                <div class="relative city-dropdown">
+                    <button
+                            type="button"
+                            id="cityDropdownButton"
+                            onclick="toggleCityDropdown()"
+                            class="w-full pl-8 pr-9 py-2 bg-panel2 border border-border rounded-lg text-sm text-left hover:bg-panel transition relative">
+                        <i data-lucide="map-pin" class="w-4 h-4 absolute left-2 top-2.5 text-gray-400"></i>
+                        <span id="cityDropdownLabel">
+                            {% if not selected_cities or selected_cities|length == cities|length %}
+                                All cities
+                            {% elif selected_cities|length == 1 %}
+                                {{ selected_cities[0] }}
+                            {% else %}
+                                {{ selected_cities|length }} cities selected
+                            {% endif %}
+                        </span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 absolute right-2 top-2.5 text-gray-400"></i>
+                    </button>
+
+                    <div id="cityDropdownPanel" class="city-dropdown-panel hidden">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-sm text-gray-300 flex items-center gap-2">
+                                <i data-lucide="map-pin" class="w-4 h-4 text-gray-400"></i>
+                                <span>Cities</span>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <button type="button"
+                                        onclick="setAllCities(true)"
+                                        class="text-xs px-2 py-1 border border-border rounded hover:bg-panel transition">
+                                    All
+                                </button>
+                                <button type="button"
+                                        onclick="setAllCities(false)"
+                                        class="text-xs px-2 py-1 border border-border rounded hover:bg-panel transition">
+                                    None
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="max-h-52 overflow-y-auto space-y-2 pr-1">
+                            {% for city in cities %}
+                            <label class="flex items-center gap-2 text-sm text-gray-300">
+                                <input
+                                        type="checkbox"
+                                        name="city"
+                                        value="{{ city }}"
+                                        class="city-checkbox"
+                                        onchange="updateCityDropdownLabel()"
+                                        {% if not selected_cities or city in selected_cities %}checked{% endif %}>
+                                <span>{{ city }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <i data-lucide="check-circle" class="w-4 h-4 absolute left-2 top-2.5 text-gray-400"></i>
+                    <select
+                            name="applied"
+                            class="pl-8 pr-3 py-2 bg-panel2 border border-border rounded-lg text-sm w-full">
+                        <option value="">Applied</option>
+                        <option value="yes" {% if request.args.get('applied') == 'yes' %}selected{% endif %}>Yes</option>
+                        <option value="no" {% if request.args.get('applied') == 'no' %}selected{% endif %}>No</option>
+                    </select>
+                </div>
+
+                <button type="submit"
+                        class="flex items-center justify-center gap-1 primary-btn rounded-lg text-sm px-3 py-2 transition">
+                    <i data-lucide="filter" class="w-4 h-4"></i>
+                    Filter
+                </button>
+
+                <a href="{{ url_for('dashboard.index') }}"
+                   class="flex items-center justify-center gap-1 border border-border rounded-lg text-sm px-3 py-2 hover:bg-panel2 transition">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    Clear
+                </a>
+
+            </div>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+
+        <div class="lg:col-span-3 flex flex-col gap-3 left-column-height">
+
+            <div class="bg-panel border border-border rounded-xl p-3 shadow-lg panel-contour">
+                <form method="GET" class="flex flex-col gap-2">
+                    <input type="hidden" name="title" value="{{ request.args.get('title','') }}">
+                    <input type="hidden" name="company" value="{{ request.args.get('company','') }}">
+                    <input type="hidden" name="applied" value="{{ request.args.get('applied','') }}">
+                    <input type="hidden" name="job" value="{{ request.args.get('job', job.id if job else '') }}">
+
+                    {% for selected_city in request.args.getlist('city') %}
+                    <input type="hidden" name="city" value="{{ selected_city }}">
+                    {% endfor %}
+
+                    <div class="flex gap-1 text-xs flex-wrap">
+
+                        <label>
+                            <input
+                                    type="radio"
+                                    name="decision"
+                                    value=""
+                                    {% if request.args.get('decision','') == '' %}checked{% endif %}
+                                    onchange="this.form.submit()"
+                                    class="hidden">
+                            <span class="px-2 py-1 rounded cursor-pointer flex items-center gap-1 filter-radio all">
+                                <i data-lucide="list" class="w-3 h-3"></i>
+                                All
+                            </span>
+                        </label>
+
+                        <label>
+                            <input
+                                    type="radio"
+                                    name="decision"
+                                    value="apply"
+                                    {% if request.args.get('decision') == 'apply' %}checked{% endif %}
+                                    onchange="this.form.submit()"
+                                    class="hidden">
+                            <span class="px-2 py-1 rounded cursor-pointer flex items-center gap-1 filter-radio apply">
+                                <i data-lucide="arrow-up-circle" class="w-3 h-3"></i>
+                                Apply
+                            </span>
+                        </label>
+
+                        <label>
+                            <input
+                                    type="radio"
+                                    name="decision"
+                                    value="pass"
+                                    {% if request.args.get('decision') == 'pass' %}checked{% endif %}
+                                    onchange="this.form.submit()"
+                                    class="hidden">
+                            <span class="px-2 py-1 rounded cursor-pointer flex items-center gap-1 filter-radio pass">
+                                <i data-lucide="x-circle" class="w-3 h-3"></i>
+                                Pass
+                            </span>
+                        </label>
+
+                        <label>
+                            <input
+                                    type="radio"
+                                    name="decision"
+                                    value="applied"
+                                    {% if request.args.get('decision') == 'applied' %}checked{% endif %}
+                                    onchange="this.form.submit()"
+                                    class="hidden">
+                            <span class="px-2 py-1 rounded cursor-pointer flex items-center gap-1 filter-radio applied">
+                                <i data-lucide="check" class="w-3 h-3"></i>
+                                Applied
+                            </span>
+                        </label>
+
+                    </div>
+
+                    <div class="text-xs text-gray-400 flex items-center gap-2">
+                        <i data-lucide="bar-chart" class="w-4 h-4 section-title-icon"></i>
+                        <span>Total {{ stats.total }}</span> |
+                        <span style="color:var(--apply-2)">Apply {{ stats.apply }}</span> |
+                        <span style="color:var(--pass-2)">Pass {{ stats.pass }}</span> |
+                        <span style="color:var(--applied-2)">Applied {{ stats.applied }}</span>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="bg-panel border border-border rounded-xl shadow-lg overflow-hidden flex flex-col lg:flex-1 panel-contour-cyan">
+                <div class="px-4 py-3 border-b border-border flex items-center gap-2 text-sm text-gray-300">
+                    <i data-lucide="briefcase" class="w-4 h-4 section-title-icon"></i>
+                    Jobs
+                </div>
+
+                <div id="jobListScroll" class="overflow-y-auto h-[65vh] lg:h-[70vh] job-list-scroll p-2 space-y-2">
+                    {% for job in jobs %}
+                    <a
+                        href="{{ url_for('dashboard.index', job=job.id, decision=request.args.get('decision'), title=request.args.get('title'), company=request.args.get('company'), applied=request.args.get('applied'), city=request.args.getlist('city')) }}"
+                        class="job-link job-card-item block p-3 rounded-lg border border-border bg-panel2 hover:bg-gray-800 transition"
+                        data-job-id="{{ job.id }}">
+
+                        <div class="flex items-start gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4 mt-[2px] text-gray-400"></i>
+
+                            <div>
+                                <div class="text-sm font-semibold leading-tight">
+                                    {{ job.title }}
+                                </div>
+
+                                <div class="text-xs text-gray-400 mt-1">
+                                    {{ job.company }} • {{ job.location }}
+                                </div>
+
+                                <div class="flex gap-1 mt-2 flex-wrap">
+                                    {% if job.should_apply == "apply" %}
+                                    <span class="text-[11px] px-2 py-[2px] rounded decision-chip apply">Apply</span>
+                                    {% elif job.should_apply == "pass" %}
+                                    <span class="text-[11px] px-2 py-[2px] rounded decision-chip pass">Pass</span>
+                                    {% elif job.should_apply == "error" %}
+                                    <span class="text-[11px] px-2 py-[2px] rounded decision-chip error">Error</span>
+                                    {% elif job.should_apply == "applied" %}
+                                    <span class="text-[11px] px-2 py-[2px] rounded decision-chip applied">Applied</span>
+                                    {% else %}
+                                    <span class="text-[11px] px-2 py-[2px] rounded decision-chip all">
+                                        {{ job.should_apply }}
+                                    </span>
+                                    {% endif %}
+
+                                    {% if job.is_applied %}
+                                    <span class="text-[11px] px-2 py-[2px] rounded decision-chip applied">Applied</span>
+                                    {% else %}
+                                    <span class="text-[11px] px-2 py-[2px] rounded decision-chip all">Not applied</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-9">
+            <div class="bg-panel border border-border rounded-xl shadow-lg p-5 flex flex-col h-[70vh] lg:h-[85vh] panel-contour">
+
+                {% if job %}
+                <div class="flex flex-col lg:flex-row lg:items-center gap-2 mb-3">
+                    <h2 class="text-lg font-semibold flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-5 h-5 detail-title-icon"></i>
+                        {{ job.title }}
+                    </h2>
+
+                    <div class="text-sm text-gray-400 lg:ml-3 flex items-center gap-1">
+                        <i data-lucide="building" class="w-4 h-4 section-title-icon"></i>
+                        {{ job.company }}
+
+                        <i data-lucide="map-pin" class="w-4 h-4 ml-3 section-title-icon"></i>
+                        {{ job.location }}
+                    </div>
+                </div>
+
+                <form
+                        method="POST"
+                        action="/job/{{ job.id }}/update"
+                        class="flex flex-wrap gap-2 items-center mb-4"
+                        id="jobUpdateForm">
+
+                    <input type="hidden" name="next" value="{{ request.url }}">
+                    <input type="hidden" name="active_tab" id="activeTabInput" value="desc">
+
+                    <select name="decision" class="bg-panel2 border border-border rounded px-3 py-1 text-sm">
+                        <option value="">Decision</option>
+                        <option value="apply" {% if job.should_apply == "apply" %}selected{% endif %}>Apply</option>
+                        <option value="pass" {% if job.should_apply == "pass" %}selected{% endif %}>Pass</option>
+                        <option value="error" {% if job.should_apply == "error" %}selected{% endif %}>Error</option>
+                    </select>
+
+                    <button
+                            type="submit"
+                            name="decision"
+                            value="apply"
+                            class="px-3 py-1 text-sm rounded flex items-center gap-1 decision-chip apply">
+                        <i data-lucide="arrow-up-circle" class="w-4 h-4"></i>
+                        Apply
+                    </button>
+
+                    <button
+                            type="submit"
+                            name="decision"
+                            value="pass"
+                            class="px-3 py-1 text-sm rounded flex items-center gap-1 decision-chip pass">
+                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                        Pass
+                    </button>
+
+                    <button
+                            type="submit"
+                            name="applied"
+                            value="true"
+                            class="px-3 py-1 text-sm rounded flex items-center gap-1 semantic-outline applied">
+                        <i data-lucide="check" class="w-4 h-4" style="color:var(--applied-2)"></i>
+                        {% if job.is_applied %}
+                        Applied
+                        {% else %}
+                        Mark Applied
+                        {% endif %}
+                    </button>
+
+                    <a
+                            href="{{ job.link }}"
+                            target="_blank"
+                            class="px-3 py-1 text-sm border border-border rounded hover:bg-panel2 transition flex items-center gap-1">
+                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                        Indeed
+                    </a>
+
+                    <button type="submit" class="primary-btn px-3 py-1 text-sm rounded flex items-center gap-1">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        Save
+                    </button>
+                </form>
+
+                <div class="flex gap-4 border-b border-border text-sm mb-3">
+                    <button type="button" id="tabDescBtn" onclick="showTab('desc')"
+                            class="tab-btn active pb-2 flex items-center gap-1 text-gray-300">
+                        <i data-lucide="file-text" class="w-4 h-4 section-title-icon"></i>
+                        Description
+                    </button>
+
+                    <button type="button" id="tabAnswerBtn" onclick="showTab('answer')"
+                            class="tab-btn pb-2 flex items-center gap-1 text-gray-300">
+                        <i data-lucide="message-square" class="w-4 h-4 section-title-icon"></i>
+                        Answer
+                    </button>
+                </div>
+
+                <div id="desc" class="flex-1 overflow-auto whitespace-pre-wrap text-[15px] leading-7 text-gray-300">
+                    {{ job.description }}
+                </div>
+
+                <div id="answer"
+                     class="hidden flex-1 overflow-auto whitespace-pre-wrap text-[15px] leading-7 text-gray-300">
+                    {{ job.answer }}
+                </div>
+
+                {% else %}
+                <div class="text-gray-400 flex items-center gap-2">
+                    <i data-lucide="inbox"></i>
+                    No job selected
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
 </div>
-
-<div class="relative">
-<i data-lucide="building" class="w-4 h-4 absolute left-2 top-2.5 text-gray-400"></i>
-<input name="company"
-placeholder="Company"
-value="{{ request.args.get('company','') }}"
-class="pl-8 pr-3 py-2 bg-panel2 border border-border rounded-lg text-sm w-full focus:outline-none focus:ring-1 focus:ring-gray-500">
-</div>
-
-<div class="relative">
-<i data-lucide="map-pin" class="w-4 h-4 absolute left-2 top-2.5 text-gray-400"></i>
-<select name="city"
-class="pl-8 pr-3 py-2 bg-panel2 border border-border rounded-lg text-sm w-full">
-<option value="">City</option>
-{% for city in cities %}
-<option value="{{ city }}"
-{% if request.args.get('city') == city %}selected{% endif %}>
-{{ city }}
-</option>
-{% endfor %}
-</select>
-</div>
-
-<div class="relative">
-<i data-lucide="check-circle" class="w-4 h-4 absolute left-2 top-2.5 text-gray-400"></i>
-<select name="applied"
-class="pl-8 pr-3 py-2 bg-panel2 border border-border rounded-lg text-sm w-full">
-<option value="">Applied</option>
-<option value="yes" {% if request.args.get('applied') == 'yes' %}selected{% endif %}>Yes</option>
-<option value="no" {% if request.args.get('applied') == 'no' %}selected{% endif %}>No</option>
-</select>
-</div>
-
-<button class="flex items-center justify-center gap-1 primary-btn rounded-lg text-sm px-3 py-2 transition">
-<i data-lucide="filter" class="w-4 h-4"></i>
-Filter
-</button>
-
-<a href="/" class="flex items-center justify-center gap-1 border border-border rounded-lg text-sm px-3 py-2 hover:bg-panel2 transition">
-<i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-Clear
-</a>
-
-</div>
-</form>
-</div>
-
-
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-
-
-<!-- LEFT COLUMN -->
-<div class="lg:col-span-3 flex flex-col gap-3 left-column-height">
-
-
-<!-- FILTER TOOLBAR MOVED HERE -->
-<div class="bg-panel border border-border rounded-xl p-3 shadow-lg panel-contour">
-
-<form method="GET" class="flex flex-col gap-2">
-
-<input type="hidden" name="title" value="{{ request.args.get('title','') }}">
-<input type="hidden" name="company" value="{{ request.args.get('company','') }}">
-<input type="hidden" name="city" value="{{ request.args.get('city','') }}">
-<input type="hidden" name="applied" value="{{ request.args.get('applied','') }}">
-
-<div class="flex gap-1 text-xs flex-wrap">
-
-<label>
-<input type="radio" name="decision" value=""
-{% if request.args.get('decision','') == '' %}checked{% endif %}
-onchange="this.form.submit()" class="hidden">
-<span class="px-2 py-1 rounded cursor-pointer flex items-center gap-1 filter-radio all">
-<i data-lucide="list" class="w-3 h-3"></i>
-All
-</span>
-</label>
-
-<label>
-<input type="radio" name="decision" value="apply"
-{% if request.args.get('decision') == 'apply' %}checked{% endif %}
-onchange="this.form.submit()" class="hidden">
-<span class="px-2 py-1 rounded cursor-pointer flex items-center gap-1 filter-radio apply">
-<i data-lucide="arrow-up-circle" class="w-3 h-3"></i>
-Apply
-</span>
-</label>
-
-<label>
-<input type="radio" name="decision" value="pass"
-{% if request.args.get('decision') == 'pass' %}checked{% endif %}
-onchange="this.form.submit()" class="hidden">
-<span class="px-2 py-1 rounded cursor-pointer flex items-center gap-1 filter-radio pass">
-<i data-lucide="x-circle" class="w-3 h-3"></i>
-Pass
-</span>
-</label>
-
-<label>
-<input type="radio" name="decision" value="applied"
-{% if request.args.get('decision') == 'applied' %}checked{% endif %}
-onchange="this.form.submit()" class="hidden">
-<span class="px-2 py-1 rounded cursor-pointer flex items-center gap-1 filter-radio applied">
-<i data-lucide="check" class="w-3 h-3"></i>
-Applied
-</span>
-</label>
-
-</div>
-
-<div class="text-xs text-gray-400 flex items-center gap-2">
-<i data-lucide="bar-chart" class="w-4 h-4 section-title-icon"></i>
-<span>Total {{ stats.total }}</span> |
-<span style="color:var(--apply-2)">Apply {{ stats.apply }}</span> |
-<span style="color:var(--pass-2)">Pass {{ stats.pass }}</span> |
-<span style="color:var(--applied-2)">Applied {{ stats.applied }}</span>
-</div>
-
-</form>
-</div>
-
-
-
-<!-- JOB LIST -->
-<div class="bg-panel border border-border rounded-xl shadow-lg overflow-hidden flex flex-col lg:flex-1 panel-contour-cyan">
-
-<div class="px-4 py-3 border-b border-border flex items-center gap-2 text-sm text-gray-300">
-<i data-lucide="briefcase" class="w-4 h-4 section-title-icon"></i>
-Jobs
-</div>
-
-<div id="jobListScroll" class="overflow-y-auto h-[65vh] lg:h-[70vh] job-list-scroll p-2 space-y-2">
-
-{% for job in jobs %}
-
-<a href="{{ url_for('dashboard.index',job=job.id,decision=request.args.get('decision'),title=request.args.get('title'),company=request.args.get('company'),city=request.args.get('city'),applied=request.args.get('applied')) }}"
-class="job-link job-card-item block p-3 rounded-lg border border-border bg-panel2 hover:bg-gray-800 transition">
-
-<div class="flex items-start gap-2">
-
-<i data-lucide="file-text" class="w-4 h-4 mt-[2px] text-gray-400"></i>
-
-<div>
-
-<div class="text-sm font-semibold leading-tight">
-{{ job.title }}
-</div>
-
-<div class="text-xs text-gray-400 mt-1">
-{{ job.company }} • {{ job.location }}
-</div>
-
-<div class="flex gap-1 mt-2 flex-wrap">
-
-{% if job.should_apply == "apply" %}
-<span class="text-[11px] px-2 py-[2px] rounded decision-chip apply">Apply</span>
-{% elif job.should_apply == "pass" %}
-<span class="text-[11px] px-2 py-[2px] rounded decision-chip pass">Pass</span>
-{% elif job.should_apply == "error" %}
-<span class="text-[11px] px-2 py-[2px] rounded decision-chip error">Error</span>
-{% elif job.should_apply == "applied" %}
-<span class="text-[11px] px-2 py-[2px] rounded decision-chip applied">Applied</span>
-{% else %}
-<span class="text-[11px] px-2 py-[2px] rounded decision-chip all">
-{{ job.should_apply }}
-</span>
-{% endif %}
-
-{% if job.is_applied %}
-<span class="text-[11px] px-2 py-[2px] rounded decision-chip applied">Applied</span>
-{% else %}
-<span class="text-[11px] px-2 py-[2px] rounded decision-chip all">Not applied</span>
-{% endif %}
-
-</div>
-
-</div>
-</div>
-</a>
-
-{% endfor %}
-
-</div>
-</div>
-
-</div>
-
-
-<!-- JOB DETAIL -->
-<div class="lg:col-span-9">
-
-<div class="bg-panel border border-border rounded-xl shadow-lg p-5 flex flex-col h-[70vh] lg:h-[85vh] panel-contour">
-
-{% if job %}
-
-<div class="flex flex-col lg:flex-row lg:items-center gap-2 mb-3">
-
-<h2 class="text-lg font-semibold flex items-center gap-2">
-<i data-lucide="file-text" class="w-5 h-5 detail-title-icon"></i>
-{{ job.title }}
-</h2>
-
-<div class="text-sm text-gray-400 lg:ml-3 flex items-center gap-1">
-<i data-lucide="building" class="w-4 h-4 section-title-icon"></i>
-{{ job.company }}
-
-<i data-lucide="map-pin" class="w-4 h-4 ml-3 section-title-icon"></i>
-{{ job.location }}
-</div>
-
-</div>
-
-
-<form method="POST"
-action="/job/{{ job.id }}/update"
-class="flex flex-wrap gap-2 items-center mb-4">
-
-<select name="decision"
-class="bg-panel2 border border-border rounded px-3 py-1 text-sm">
-
-<option value="">Decision</option>
-<option value="apply" {% if job.should_apply=="apply" %}selected{% endif %}>Apply</option>
-<option value="pass" {% if job.should_apply=="pass" %}selected{% endif %}>Pass</option>
-<option value="error" {% if job.should_apply=="error" %}selected{% endif %}>Error</option>
-
-</select>
-
-<button type="submit" name="decision" value="apply"
-class="px-3 py-1 text-sm rounded flex items-center gap-1 decision-chip apply">
-<i data-lucide="arrow-up-circle" class="w-4 h-4"></i>
-Apply
-</button>
-
-<button type="submit" name="decision" value="pass"
-class="px-3 py-1 text-sm rounded flex items-center gap-1 decision-chip pass">
-<i data-lucide="x-circle" class="w-4 h-4"></i>
-Pass
-</button>
-
-<button name="applied"
-value="true"
-class="px-3 py-1 text-sm rounded flex items-center gap-1 semantic-outline applied">
-
-<i data-lucide="check" class="w-4 h-4" style="color:var(--applied-2)"></i>
-
-{% if job.is_applied %}
-Applied
-{% else %}
-Mark Applied
-{% endif %}
-
-</button>
-
-
-<a href="{{ job.link }}"
-target="_blank"
-class="px-3 py-1 text-sm border border-border rounded hover:bg-panel2 transition flex items-center gap-1">
-
-<i data-lucide="external-link" class="w-4 h-4"></i>
-Indeed
-
-</a>
-
-
-<button class="primary-btn px-3 py-1 text-sm rounded flex items-center gap-1">
-<i data-lucide="save" class="w-4 h-4"></i>
-Save
-</button>
-
-</form>
-
-
-<div class="flex gap-4 border-b border-border text-sm mb-3">
-
-<button id="tabDescBtn" onclick="showTab('desc')" class="tab-btn active pb-2 flex items-center gap-1 text-gray-300">
-<i data-lucide="file-text" class="w-4 h-4 section-title-icon"></i>
-Description
-</button>
-
-<button id="tabAnswerBtn" onclick="showTab('answer')" class="tab-btn pb-2 flex items-center gap-1 text-gray-300">
-<i data-lucide="message-square" class="w-4 h-4 section-title-icon"></i>
-Answer
-</button>
-
-</div>
-
-
-<div id="desc"
-class="flex-1 overflow-auto whitespace-pre-wrap text-[15px] leading-7 text-gray-300">
-{{ job.description }}
-</div>
-
-<div id="answer"
-class="hidden flex-1 overflow-auto whitespace-pre-wrap text-[15px] leading-7 text-gray-300">
-{{ job.answer }}
-</div>
-
-{% else %}
-
-<div class="text-gray-400 flex items-center gap-2">
-<i data-lucide="inbox"></i>
-No job selected
-</div>
-
-{% endif %}
-
-</div>
-
-</div>
-
-</div>
-</div>
-
 
 <script>
-function showTab(id){
-  const desc = document.getElementById("desc")
-  const answer = document.getElementById("answer")
-  const tabDescBtn = document.getElementById("tabDescBtn")
-  const tabAnswerBtn = document.getElementById("tabAnswerBtn")
+    function getSelectedJobId() {
+      const params = new URLSearchParams(window.location.search)
+      return params.get("job")
+    }
 
-  if (!desc || !answer) return
+    function getTabStorageKey() {
+      const selectedJobId = getSelectedJobId()
+      return selectedJobId ? `jobDetailTab:${selectedJobId}` : "jobDetailTab"
+    }
 
-  desc.classList.add("hidden")
-  answer.classList.add("hidden")
+    function toggleCityDropdown() {
+      const panel = document.getElementById("cityDropdownPanel")
+      if (!panel) return
+      panel.classList.toggle("hidden")
+    }
 
-  if (tabDescBtn) tabDescBtn.classList.remove("active")
-  if (tabAnswerBtn) tabAnswerBtn.classList.remove("active")
+    function setAllCities(checked) {
+      document.querySelectorAll('input.city-checkbox[name="city"]').forEach(function(cb) {
+        cb.checked = checked
+      })
+      updateCityDropdownLabel()
+    }
 
-  document.getElementById(id).classList.remove("hidden")
+    function updateCityDropdownLabel() {
+      const checkboxes = Array.from(document.querySelectorAll('input.city-checkbox[name="city"]'))
+      const checked = checkboxes.filter(cb => cb.checked)
+      const label = document.getElementById("cityDropdownLabel")
 
-  if (id === "desc" && tabDescBtn) tabDescBtn.classList.add("active")
-  if (id === "answer" && tabAnswerBtn) tabAnswerBtn.classList.add("active")
-}
+      if (!label) return
 
-/* Preserve sidebar scroll position when opening a job */
-const jobListScroll = document.getElementById("jobListScroll")
-if (jobListScroll) {
-  const savedScrollTop = sessionStorage.getItem("jobListScrollTop")
-  if (savedScrollTop !== null) {
-    jobListScroll.scrollTop = parseInt(savedScrollTop, 10) || 0
-  }
+      if (checked.length === 0 || checked.length === checkboxes.length) {
+        label.textContent = "All cities"
+      } else if (checked.length === 1) {
+        label.textContent = checked[0].value
+      } else {
+        label.textContent = `${checked.length} cities selected`
+      }
+    }
 
-  jobListScroll.addEventListener("scroll", function(){
-    sessionStorage.setItem("jobListScrollTop", String(jobListScroll.scrollTop))
-  })
+    function showTab(id){
+      const desc = document.getElementById("desc")
+      const answer = document.getElementById("answer")
+      const tabDescBtn = document.getElementById("tabDescBtn")
+      const tabAnswerBtn = document.getElementById("tabAnswerBtn")
+      const activeTabInput = document.getElementById("activeTabInput")
 
-  document.querySelectorAll(".job-link").forEach(function(link){
-    link.addEventListener("click", function(){
-      sessionStorage.setItem("jobListScrollTop", String(jobListScroll.scrollTop))
+      if (!desc || !answer) return
+
+      desc.classList.add("hidden")
+      answer.classList.add("hidden")
+
+      if (tabDescBtn) tabDescBtn.classList.remove("active")
+      if (tabAnswerBtn) tabAnswerBtn.classList.remove("active")
+
+      const target = document.getElementById(id)
+      if (target) {
+        target.classList.remove("hidden")
+      }
+
+      if (id === "desc" && tabDescBtn) tabDescBtn.classList.add("active")
+      if (id === "answer" && tabAnswerBtn) tabAnswerBtn.classList.add("active")
+
+      sessionStorage.setItem(getTabStorageKey(), id)
+
+      if (activeTabInput) {
+        activeTabInput.value = id
+      }
+    }
+
+    const jobListScroll = document.getElementById("jobListScroll")
+    if (jobListScroll) {
+      const savedScrollTop = sessionStorage.getItem("jobListScrollTop")
+      if (savedScrollTop !== null) {
+        jobListScroll.scrollTop = parseInt(savedScrollTop, 10) || 0
+      }
+
+      jobListScroll.addEventListener("scroll", function(){
+        sessionStorage.setItem("jobListScrollTop", String(jobListScroll.scrollTop))
+      })
+
+      document.querySelectorAll(".job-link").forEach(function(link){
+        link.addEventListener("click", function(){
+          sessionStorage.setItem("jobListScrollTop", String(jobListScroll.scrollTop))
+        })
+      })
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const savedTab = sessionStorage.getItem(getTabStorageKey()) || "desc"
+      showTab(savedTab)
+      updateCityDropdownLabel()
+
+      const form = document.getElementById("jobUpdateForm")
+      if (form) {
+        form.addEventListener("submit", function () {
+          sessionStorage.setItem("jobListScrollTop", String(jobListScroll ? jobListScroll.scrollTop : 0))
+          const activeTab = sessionStorage.getItem(getTabStorageKey()) || "desc"
+          const activeTabInput = document.getElementById("activeTabInput")
+          if (activeTabInput) {
+            activeTabInput.value = activeTab
+          }
+        })
+      }
+
+      document.addEventListener("click", function (event) {
+        const dropdown = document.querySelector(".city-dropdown")
+        const panel = document.getElementById("cityDropdownPanel")
+        if (!dropdown || !panel) return
+
+        if (!dropdown.contains(event.target)) {
+          panel.classList.add("hidden")
+        }
+      })
     })
-  })
-}
 
-lucide.createIcons()
+    lucide.createIcons()
 </script>
 
 </body>

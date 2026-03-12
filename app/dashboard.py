@@ -32,14 +32,20 @@ def dashboard_blueprints(job_db):
     @bp.route("/job/<job_id>/update", methods=["POST"])
     def update_job(job_id):
         job_list = job_db.load_jobs()
-        decision_value = request.form.get("decision", "")
-        applied_value = "applied" in request.form
+        decision_value = request.form.get("decision")
+        applied_clicked = request.form.get("applied") == "true"
+        next_url = request.form.get("next")
         for job in job_list:
-            if str(job.get("id")) == job_id:
-                job["should_apply"] = decision_value
-                job["is_applied"] = applied_value
+            if str(job.get("id")) == str(job_id):
+                if decision_value is not None and decision_value != "":
+                    job["should_apply"] = decision_value
+                if applied_clicked:
+                    job["is_applied"] = True
+                    job["should_apply"] = "applied"
                 break
         job_db.save_jobs(job_list)
+        if next_url:
+            return redirect(next_url)
         return redirect(url_for("dashboard.index", job=job_id))
 
 

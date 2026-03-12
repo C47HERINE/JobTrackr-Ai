@@ -11,14 +11,14 @@ def compute_statistics(job_list):
 
 
 def list_cities(job_list):
-    return sorted({job["city"] for job in job_list if job["city"]})
+    return sorted({job.get("city") for job in job_list if job.get("city")})
 
 
 def filter_jobs(job_list):
     decision_filter = request.args.get("decision", "")
-    title_filter = request.args.get("title", "").lower()
-    company_filter = request.args.get("company", "").lower()
-    city_filter = request.args.get("city", "")
+    title_filter = request.args.get("title", "").lower().strip()
+    company_filter = request.args.get("company", "").lower().strip()
+    city_filters = request.args.getlist("city")
     applied_filter = request.args.get("applied", "")
     filtered_results = []
     for job in job_list:
@@ -32,7 +32,7 @@ def filter_jobs(job_list):
             continue
         if company_filter and company_filter not in job.get("company", "").lower():
             continue
-        if city_filter and job.get("city") != city_filter:
+        if city_filters and job.get("city") not in city_filters:
             continue
         if applied_filter == "yes" and not job.get("is_applied"):
             continue
