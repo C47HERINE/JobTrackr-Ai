@@ -18,661 +18,831 @@
                 xl3: "24px"
               },
               boxShadow: {
-                soft: "0 10px 30px rgba(0,0,0,.12)"
+                soft: "0 10px 30px rgba(15, 23, 42, 0.10)",
+                panel: "0 8px 24px rgba(15, 23, 42, 0.08)",
+                pop: "0 18px 48px rgba(15, 23, 42, 0.18)"
               }
             }
           }
         }
     </script>
+
     <style>
-        ::-webkit-scrollbar { width: 10px; height: 10px; }
-        ::-webkit-scrollbar-track { background: #1b1e24; }
-        ::-webkit-scrollbar-thumb { background: #3b4352; border-radius: 999px; }
-        ::-webkit-scrollbar-thumb:hover { background: #4a5568; }
+        html {
+          height: 100%;
+          -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+          min-height: 100dvh;
+        }
+
+        ::-webkit-scrollbar {
+          width: 10px;
+          height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+          background: rgba(113, 113, 122, 0.45);
+          border-radius: 999px;
+          border: 2px solid transparent;
+          background-clip: padding-box;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(82, 82, 91, 0.7);
+          border: 2px solid transparent;
+          background-clip: padding-box;
+        }
 
         .glass {
           backdrop-filter: blur(14px);
           -webkit-backdrop-filter: blur(14px);
         }
+
+        .surface-grid {
+          background-image: none;
+        }
+
+        .panel-scroll {
+          overscroll-behavior: contain;
+        }
+
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
     </style>
 </head>
-<body class="bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 h-screen overflow-hidden">
-<div class="h-dvh flex flex-col">
+<body class="h-screen overflow-hidden bg-white text-zinc-900 dark:bg-black dark:text-zinc-100">
+{% set selected_cities = request.args.getlist('city') %}
+{% set selected_decision = request.args.get('decision','') %}
+{% set selected_job_id = request.args.get('job', job.id if job else '') %}
 
-    {% set selected_cities = request.args.getlist('city') %}
-    {% set selected_decision = request.args.get('decision','') %}
-
-    <header class="h-16 border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/90 px-3 md:px-4 shrink-0 flex md:grid md:grid-cols-[1fr_auto_1fr] items-center gap-3 md:gap-4">
-        <div class="min-w-0 flex items-center gap-3 md:gap-4 flex-1 md:flex-none">
-            <div class="flex items-center gap-3 shrink-0 min-w-0">
-                <div class="h-10 w-10 rounded-2xl bg-blue-100 dark:bg-blue-500/15 flex items-center justify-center shrink-0">
-                    <i data-lucide="briefcase-business" class="w-5 h-5 text-blue-600 dark:text-blue-400"></i>
-                </div>
-                <div class="min-w-0">
-                    <div class="text-xs text-zinc-500 dark:text-zinc-400 truncate">JobTrackr AI</div>
-                    <div class="font-semibold leading-tight truncate">Dashboard</div>
-                </div>
-            </div>
-
-            <div class="hidden xl:flex items-center gap-4 min-w-0">
-                <div>
-                    <div class="text-xs text-zinc-500 dark:text-zinc-400">Total</div>
-                    <div class="font-semibold leading-tight">{{ stats.total }}</div>
-                </div>
-                <div>
-                    <div class="text-xs text-green-600 dark:text-green-400">Apply</div>
-                    <div class="font-semibold text-green-600 dark:text-green-400 leading-tight">{{ stats.apply }}</div>
-                </div>
-                <div>
-                    <div class="text-xs text-red-600 dark:text-red-400">Pass</div>
-                    <div class="font-semibold text-red-600 dark:text-red-400 leading-tight">{{ stats.pass }}</div>
-                </div>
-                <div>
-                    <div class="text-xs text-blue-500 dark:text-blue-300">Applied</div>
-                    <div class="font-semibold text-blue-500 dark:text-blue-300 leading-tight">{{ stats.applied }}</div>
-                </div>
-            </div>
-        </div>
-
-        <nav class="hidden md:flex items-center justify-center gap-1 bg-zinc-100 dark:bg-zinc-800 rounded-full p-1 border border-zinc-200 dark:border-zinc-700">
-            <a href="{{ url_for('dashboard.index') }}"
-               class="px-4 py-2 rounded-full bg-blue-600 dark:bg-blue-500 text-white text-sm font-medium">Dashboard</a>
-            <button type="button"
-                    class="px-4 py-2 rounded-full text-sm text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-700 transition">
-                Interviews
-            </button>
-            <button type="button"
-                    class="px-4 py-2 rounded-full text-sm text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-700 transition">
-                Applied
-            </button>
-            <button type="button"
-                    class="px-4 py-2 rounded-full text-sm text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-700 transition">
-                AI Chat
-            </button>
-            <button type="button"
-                    class="px-4 py-2 rounded-full text-sm text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-700 transition">
-                Settings
-            </button>
-        </nav>
-
-        <div class="min-w-0 flex justify-end">
-            <div class="flex items-center gap-2 relative">
-                <button
-                        id="filterButton"
-                        type="button"
-                        class="h-10 px-3 md:px-4 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm font-semibold flex items-center gap-2 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition shrink-0">
-                    <i data-lucide="sliders-horizontal" class="w-4 h-4 text-blue-600 dark:text-blue-400"></i>
-                    <span class="hidden sm:inline">Filters</span>
-                </button>
-
-                <button type="button"
-                        class="h-10 px-3 md:px-4 rounded-full bg-blue-600 dark:bg-blue-500 text-white text-sm font-medium hover:brightness-110 transition shrink-0">
-                    <span class="hidden sm:inline">Run Search</span>
-                    <span class="sm:hidden">Search</span>
-                </button>
-
-                <div
-                        id="filterPanel"
-                        class="hidden fixed md:absolute left-2 right-2 md:left-auto md:right-0 top-20 md:top-12 md:w-[360px] max-w-[calc(100vw-1rem)] md:max-w-[92vw] max-h-[calc(100vh-6rem)] md:max-h-[min(80vh,720px)] overflow-y-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl3 shadow-soft p-4 z-50">
-                    <form method="GET">
-                        <input type="hidden" name="decision" value="{{ selected_decision }}">
-                        <input type="hidden" name="job" value="{{ request.args.get('job', job.id if job else '') }}">
-
-                        <div class="flex items-center justify-between mb-4">
-                            <div>
-                                <div class="font-semibold">Filters</div>
-                                <div class="text-xs text-zinc-500 dark:text-zinc-400">Refine dashboard results</div>
-                            </div>
-                            <a href="{{ url_for('dashboard.index') }}"
-                               class="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">Reset</a>
+<div class="h-dvh w-full overflow-hidden bg-white dark:bg-black surface-grid">
+    <div class="mx-auto flex h-full w-full max-w-[1720px] flex-col overflow-hidden px-2 py-2 md:px-3 md:py-3">
+        <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] bg-white shadow-pop glass dark:bg-black">
+            <header class="relative shrink-0 px-3 py-3 md:px-5">
+                <div class="flex items-center gap-3">
+                    <div class="min-w-0 flex flex-1 items-center gap-3">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400">
+                            <i data-lucide="briefcase-business" class="h-5 w-5"></i>
                         </div>
 
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">Title</label>
-                                <div class="relative">
-                                    <i data-lucide="search"
-                                       class="w-4 h-4 absolute left-3 top-3.5 text-zinc-400 dark:text-zinc-500"></i>
-                                    <input
-                                            name="title"
-                                            value="{{ request.args.get('title','') }}"
-                                            class="w-full h-11 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 pl-10 pr-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                                            placeholder="Python, support, QA...">
+                        <div class="min-w-0">
+                            <div class="truncate text-xs font-medium text-zinc-500 dark:text-zinc-400">JobTrackr AI
+                            </div>
+                            <div class="truncate text-base font-semibold tracking-tight">Dashboard</div>
+                        </div>
+                    </div>
+
+                    <nav class="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 p-1 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 lg:flex">
+                        <a href="{{ url_for('dashboard.index') }}"
+                           class="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white dark:bg-blue-500">Dashboard</a>
+                        <button type="button"
+                                class="rounded-full px-4 py-2 text-sm text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-zinc-100">
+                            Interviews
+                        </button>
+                        <button type="button"
+                                class="rounded-full px-4 py-2 text-sm text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-zinc-100">
+                            Applied
+                        </button>
+                        <button type="button"
+                                class="rounded-full px-4 py-2 text-sm text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-zinc-100">
+                            AI Chat
+                        </button>
+                        <button type="button"
+                                class="rounded-full px-4 py-2 text-sm text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-zinc-100">
+                            Settings
+                        </button>
+                        <button type="button"
+                                class="run-search-trigger rounded-full px-4 py-2 text-sm text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-zinc-100">
+                            Run Search
+                        </button>
+                    </nav>
+
+                    <div class="flex items-center gap-2 lg:absolute lg:right-5 lg:top-[56%] lg:-translate-y-1/2">
+                        <button id="mobileNavButton" type="button" aria-expanded="false" aria-controls="mobileNavPanel"
+                                class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 text-zinc-700 transition hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 lg:hidden">
+                            <i data-lucide="menu" class="h-5 w-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+                    <div>
+                        <span class="text-zinc-500 dark:text-zinc-400">Total</span>
+                        <span class="ml-2 font-semibold">{{ stats.total }}</span>
+                    </div>
+                    <div>
+                        <span class="text-green-600 dark:text-green-400">Apply</span>
+                        <span class="ml-2 font-semibold text-green-600 dark:text-green-400">{{ stats.apply }}</span>
+                    </div>
+                    <div>
+                        <span class="text-red-600 dark:text-red-400">Pass</span>
+                        <span class="ml-2 font-semibold text-red-600 dark:text-red-400">{{ stats.pass }}</span>
+                    </div>
+                    <div>
+                        <span class="text-blue-600 dark:text-blue-400">Applied</span>
+                        <span class="ml-2 font-semibold text-blue-600 dark:text-blue-400">{{ stats.applied }}</span>
+                    </div>
+                </div>
+            </header>
+
+            <div id="mobileNavPanel" class="hidden shrink-0 px-3 py-3 lg:hidden">
+                <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    <a href="{{ url_for('dashboard.index') }}"
+                       class="inline-flex h-10 items-center justify-center rounded-2xl bg-blue-600 px-4 text-sm font-medium text-white dark:bg-blue-500">Dashboard</a>
+                    <button type="button"
+                            class="inline-flex h-10 items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-100 px-4 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                        Interviews
+                    </button>
+                    <button type="button"
+                            class="inline-flex h-10 items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-100 px-4 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                        Applied
+                    </button>
+                    <button type="button"
+                            class="inline-flex h-10 items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-100 px-4 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                        AI Chat
+                    </button>
+                    <button type="button"
+                            class="inline-flex h-10 items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-100 px-4 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                        Settings
+                    </button>
+                    <button type="button"
+                            class="run-search-trigger inline-flex h-10 items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-100 px-4 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                        Run Search
+                    </button>
+                </div>
+            </div>
+
+            <div id="filterOverlay" class="pointer-events-none fixed inset-0 z-40 hidden bg-zinc-950/35"></div>
+
+            <div id="filterPanel"
+                 class="pointer-events-auto fixed inset-x-3 top-[78px] z-50 hidden max-h-[calc(100dvh-110px)] overflow-y-auto rounded-xl3 border border-zinc-200 bg-white p-4 shadow-pop dark:border-zinc-700 dark:bg-zinc-900 md:inset-x-auto md:bottom-auto md:w-[420px] md:max-h-[min(72dvh,680px)]">
+                <form method="GET" class="space-y-4">
+                    <input type="hidden" name="job" value="{{ selected_job_id }}">
+
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <div class="text-base font-semibold">Filters</div>
+                            <div class="text-sm text-zinc-500 dark:text-zinc-400">Refine dashboard results</div>
+                        </div>
+                        <a href="{{ url_for('dashboard.index') }}"
+                           class="text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">Reset</a>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Title</label>
+                        <div class="relative">
+                            <i data-lucide="search"
+                               class="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-zinc-400 dark:text-zinc-500"></i>
+                            <input name="title" value="{{ request.args.get('title','') }}"
+                                   class="h-11 w-full rounded-2xl border border-zinc-200 bg-zinc-100 pl-10 pr-3 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 dark:border-zinc-700 dark:bg-zinc-800"
+                                   placeholder="Python, support, QA...">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Company</label>
+                        <div class="relative">
+                            <i data-lucide="building-2"
+                               class="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-zinc-400 dark:text-zinc-500"></i>
+                            <input name="company" value="{{ request.args.get('company','') }}"
+                                   class="h-11 w-full rounded-2xl border border-zinc-200 bg-zinc-100 pl-10 pr-3 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 dark:border-zinc-700 dark:bg-zinc-800"
+                                   placeholder="Company name">
+                        </div>
+                    </div>
+
+                    <div class="relative" id="cityDropdownWrap">
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Cities</label>
+                        <button id="cityDropdownButton" type="button"
+                                class="flex h-11 w-full items-center justify-between rounded-2xl border border-zinc-200 bg-zinc-100 px-3 text-left transition hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700"
+                                aria-expanded="false" aria-controls="cityDropdownPanel">
+                            <span id="cityDropdownLabel" class="truncate text-zinc-700 dark:text-zinc-200"></span>
+                            <i data-lucide="chevron-down" class="h-4 w-4 shrink-0 text-zinc-400 dark:text-zinc-500"></i>
+                        </button>
+
+                        <div id="cityDropdownPanel"
+                             class="mt-2 hidden w-full rounded-2xl border border-zinc-200 bg-white p-3 shadow-soft dark:border-zinc-700 dark:bg-zinc-900">
+                            <div class="mb-3 flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2 text-sm font-medium">
+                                    <i data-lucide="map-pin" class="h-4 w-4 text-blue-600 dark:text-blue-400"></i>
+                                    <span>Cities</span>
                                 </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">Company</label>
-                                <div class="relative">
-                                    <i data-lucide="building-2"
-                                       class="w-4 h-4 absolute left-3 top-3.5 text-zinc-400 dark:text-zinc-500"></i>
-                                    <input
-                                            name="company"
-                                            value="{{ request.args.get('company','') }}"
-                                            class="w-full h-11 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 pl-10 pr-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                                            placeholder="Company name">
-                                </div>
-                            </div>
-
-                            <div class="relative city-dropdown">
-                                <label class="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">Cities</label>
-                                <button
-                                        type="button"
-                                        id="cityDropdownButton"
-                                        onclick="toggleCityDropdown()"
-                                        class="w-full h-11 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-3 flex items-center justify-between text-left hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">
-                                    <span id="cityDropdownLabel" class="text-zinc-500 dark:text-zinc-400">
-                                        {% if not selected_cities or selected_cities|length == cities|length %}
-                                            All cities
-                                        {% elif selected_cities|length == 1 %}
-                                            {{ selected_cities[0] }}
-                                        {% else %}
-                                            {{ selected_cities|length }} cities selected
-                                        {% endif %}
-                                    </span>
-                                    <i data-lucide="chevron-down" class="w-4 h-4 text-zinc-400 dark:text-zinc-500"></i>
-                                </button>
-
-                                <div id="cityDropdownPanel"
-                                     class="hidden absolute top-[calc(100%+6px)] left-0 w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl p-3 shadow-soft z-50">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <div class="text-sm flex items-center gap-2">
-                                            <i data-lucide="map-pin"
-                                               class="w-4 h-4 text-blue-600 dark:text-blue-400"></i>
-                                            <span>Cities</span>
-                                        </div>
-
-                                        <div class="flex items-center gap-2">
-                                            <button type="button"
-                                                    onclick="setAllCities(true)"
-                                                    class="text-xs px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:brightness-110 transition">
-                                                All
-                                            </button>
-                                            <button type="button"
-                                                    onclick="setAllCities(false)"
-                                                    class="text-xs px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:brightness-110 transition">
-                                                None
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div class="max-h-52 overflow-y-auto space-y-2 pr-1">
-                                        {% for city in cities %}
-                                        <label class="flex items-center gap-2 text-sm">
-                                            <input
-                                                    type="checkbox"
-                                                    name="city"
-                                                    value="{{ city }}"
-                                                    class="accent-blue-600 dark:accent-blue-500"
-                                                    onchange="updateCityDropdownLabel()"
-                                                    {% if not selected_cities or city in selected_cities %}checked{%
-                                                    endif %}>
-                                            <span>{{ city }}</span>
-                                        </label>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs text-zinc-500 dark:text-zinc-400 mb-1">Applied
-                                    status</label>
-                                <select
-                                        name="applied"
-                                        class="w-full h-11 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
-                                    <option value="">All</option>
-                                    <option value="yes" {% if request.args.get(
-                                    'applied') == 'yes' %}selected{% endif %}>Applied</option>
-                                    <option value="no" {% if request.args.get(
-                                    'applied') == 'no' %}selected{% endif %}>Not applied</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs text-zinc-500 dark:text-zinc-400 mb-2">Decision</label>
-                                <div class="flex flex-wrap gap-2">
-                                    <button type="submit" name="decision" value=""
-                                            class="px-3 py-2 rounded-full text-sm transition {% if selected_decision == '' %}bg-blue-600 dark:bg-blue-500 text-white font-medium{% else %}bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/15{% endif %}">
+                                <div class="flex items-center gap-2">
+                                    <button type="button" id="selectAllCitiesButton"
+                                            class="rounded-full bg-zinc-100 px-2.5 py-1 text-xs text-zinc-800 transition hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700">
                                         All
                                     </button>
-                                    <button type="submit" name="decision" value="apply"
-                                            class="px-3 py-2 rounded-full text-sm transition {% if selected_decision == 'apply' %}bg-green-600 dark:bg-green-500 text-white font-medium{% else %}bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-500/15{% endif %}">
-                                        Apply
-                                    </button>
-                                    <button type="submit" name="decision" value="pass"
-                                            class="px-3 py-2 rounded-full text-sm transition {% if selected_decision == 'pass' %}bg-red-600 dark:bg-red-500 text-white font-medium{% else %}bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/15{% endif %}">
-                                        Pass
-                                    </button>
-                                    <button type="submit" name="decision" value="applied"
-                                            class="px-3 py-2 rounded-full text-sm transition {% if selected_decision == 'applied' %}bg-sky-600 dark:bg-sky-500 text-white font-medium{% else %}bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-500/15{% endif %}">
-                                        Applied
+                                    <button type="button" id="selectNoCitiesButton"
+                                            class="rounded-full bg-zinc-100 px-2.5 py-1 text-xs text-zinc-800 transition hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700">
+                                        None
                                     </button>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
-                            <a href="{{ url_for('dashboard.index') }}"
-                               class="h-10 px-4 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm flex items-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">
-                                Clear
-                            </a>
-                            <button type="submit"
-                                    class="h-10 px-4 rounded-full bg-blue-600 dark:bg-blue-500 text-white text-sm font-medium hover:brightness-110 transition">
-                                Apply Filters
+                            <div class="max-h-[min(42dvh,420px)] space-y-2 overflow-y-auto pr-1 md:max-h-[360px]">
+                                {% for city in cities %}
+                                <label class="flex items-center gap-2 rounded-xl px-2 py-2 text-sm transition hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                                    <input type="checkbox" name="city" value="{{ city }}"
+                                           class="h-4 w-4 accent-blue-600 dark:accent-blue-500" {% if not
+                                           selected_cities or city in selected_cities %}checked{% endif %}>
+                                    <span>{{ city }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Applied
+                            status</label>
+                        <select name="applied"
+                                class="h-11 w-full rounded-2xl border border-zinc-200 bg-zinc-100 px-3 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 dark:border-zinc-700 dark:bg-zinc-800">
+                            <option value="">All</option>
+                            <option value="yes" {% if request.args.get(
+                            'applied') == 'yes' %}selected{% endif %}>Applied</option>
+                            <option value="no" {% if request.args.get(
+                            'applied') == 'no' %}selected{% endif %}>Not applied</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="mb-2 block text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Decision</label>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="submit" name="decision" value=""
+                                    class="rounded-full px-3 py-2 text-sm transition {% if selected_decision == '' %}bg-blue-600 text-white dark:bg-blue-500{% else %}bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-500/15{% endif %}">
+                                All
+                            </button>
+                            <button type="submit" name="decision" value="apply"
+                                    class="rounded-full px-3 py-2 text-sm transition {% if selected_decision == 'apply' %}bg-green-600 text-white dark:bg-green-500{% else %}bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-500/10 dark:text-green-300 dark:hover:bg-green-500/15{% endif %}">
+                                Apply
+                            </button>
+                            <button type="submit" name="decision" value="pass"
+                                    class="rounded-full px-3 py-2 text-sm transition {% if selected_decision == 'pass' %}bg-red-600 text-white dark:bg-red-500{% else %}bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/15{% endif %}">
+                                Pass
+                            </button>
+                            <button type="submit" name="decision" value="applied"
+                                    class="rounded-full px-3 py-2 text-sm transition {% if selected_decision == 'applied' %}bg-sky-600 text-white dark:bg-sky-500{% else %}bg-sky-50 text-sky-700 hover:bg-sky-100 dark:bg-sky-500/10 dark:text-sky-300 dark:hover:bg-sky-500/15{% endif %}">
+                                Applied
                             </button>
                         </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <div class="md:hidden border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2">
-        <div class="flex items-center gap-2 overflow-x-auto">
-            <a href="{{ url_for('dashboard.index') }}"
-               class="shrink-0 px-4 py-2 rounded-full bg-blue-600 dark:bg-blue-500 text-white text-sm font-medium">Dashboard</a>
-            <button type="button"
-                    class="shrink-0 px-4 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-500 dark:text-zinc-400">
-                Interviews
-            </button>
-            <button type="button"
-                    class="shrink-0 px-4 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-500 dark:text-zinc-400">
-                Applied
-            </button>
-            <button type="button"
-                    class="shrink-0 px-4 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-500 dark:text-zinc-400">
-                AI Chat
-            </button>
-            <button type="button"
-                    class="shrink-0 px-4 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-500 dark:text-zinc-400">
-                Settings
-            </button>
-        </div>
-    </div>
-
-    <main class="flex-1 min-h-0 p-3 md:p-4 grid grid-cols-12 gap-3 md:gap-4">
-        <aside class="col-span-12 lg:col-span-3 min-h-0 flex flex-col gap-4 order-1 lg:order-none">
-            <section
-                    class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl2 overflow-hidden shadow-soft lg:flex-1 lg:min-h-0">
-                <div class="h-14 px-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <h2 class="font-medium">Jobs</h2>
-                        <button
-                                id="toggleJobsPanelButton"
-                                type="button"
-                                class="lg:hidden h-8 w-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center">
-                            <i id="toggleJobsPanelIcon" data-lucide="chevron-up" class="w-4 h-4"></i>
-                        </button>
                     </div>
 
-                    <form method="GET" class="flex gap-2 text-sm">
-                        <input type="hidden" name="title" value="{{ request.args.get('title','') }}">
-                        <input type="hidden" name="company" value="{{ request.args.get('company','') }}">
-                        <input type="hidden" name="applied" value="{{ request.args.get('applied','') }}">
-                        <input type="hidden" name="job" value="{{ request.args.get('job', job.id if job else '') }}">
-                        {% for selected_city in request.args.getlist('city') %}
-                        <input type="hidden" name="city" value="{{ selected_city }}">
-                        {% endfor %}
-
-                        <button type="submit" name="decision" value=""
-                                class="h-8 px-3 md:px-4 rounded-full text-sm font-medium transition {% if selected_decision == '' %}bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100{% else %}bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700{% endif %}">
-                            All
+                    <div class="flex items-center justify-end gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-700">
+                        <a href="{{ url_for('dashboard.index') }}"
+                           class="inline-flex h-10 items-center rounded-full border border-zinc-200 bg-zinc-100 px-4 text-sm text-zinc-800 transition hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700">Clear</a>
+                        <button type="submit"
+                                class="inline-flex h-10 items-center rounded-full bg-blue-600 px-4 text-sm font-medium text-white transition hover:brightness-110 dark:bg-blue-500">
+                            Apply Filters
                         </button>
-                        <button type="submit" name="decision" value="apply"
-                                class="h-8 px-3 md:px-4 rounded-full text-sm font-medium transition {% if selected_decision == 'apply' %}bg-green-600 dark:bg-green-500 text-white hover:brightness-110{% else %}bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-500/15{% endif %}">
-                            Apply
-                        </button>
-                        <button type="submit" name="decision" value="pass"
-                                class="h-8 px-3 md:px-4 rounded-full text-sm font-medium transition {% if selected_decision == 'pass' %}bg-red-600 dark:bg-red-500 text-white hover:brightness-110{% else %}bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/15{% endif %}">
-                            Pass
-                        </button>
-                    </form>
-                </div>
-
-                <div id="mobileJobListPanel"
-                     class="h-[min(42vh,520px)] lg:h-[calc(100%-56px)] overflow-y-auto p-3 space-y-3">
-                    {% for item in jobs %}
-                    <a
-                            href="{{ url_for('dashboard.index', job=item.id, decision=request.args.get('decision'), title=request.args.get('title'), company=request.args.get('company'), applied=request.args.get('applied'), city=request.args.getlist('city')) }}"
-                            class="job-link block bg-zinc-50 dark:bg-zinc-800 border rounded-2xl p-3 transition {% if job and job.id == item.id %}border-blue-500 bg-blue-50 dark:bg-blue-500/10{% else %}border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700{% endif %}"
-                            data-job-id="{{ item.id }}">
-
-                        <div class="font-medium leading-tight">
-                            {{ item.title }}
-                        </div>
-
-                        <div class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                            {{ item.company }} • {{ item.location }}
-                        </div>
-
-                        <div class="mt-3 flex gap-2 flex-wrap">
-                            {% if item.should_apply == "apply" %}
-                            <span class="text-[11px] px-2 py-1 rounded-full bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300">Apply</span>
-                            {% elif item.should_apply == "pass" %}
-                            <span class="text-[11px] px-2 py-1 rounded-full bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300">Pass</span>
-                            {% elif item.should_apply == "error" %}
-                            <span class="text-[11px] px-2 py-1 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300">Error</span>
-                            {% elif item.should_apply == "applied" %}
-                            <span class="text-[11px] px-2 py-1 rounded-full bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300">Applied</span>
-                            {% else %}
-                            <span class="text-[11px] px-2 py-1 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">{{ item.should_apply }}</span>
-                            {% endif %}
-
-                            {% if item.is_applied %}
-                            <span class="text-[11px] px-2 py-1 rounded-full bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300">Applied</span>
-                            {% else %}
-                            <span class="text-[11px] px-2 py-1 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">Not applied</span>
-                            {% endif %}
-                        </div>
-                    </a>
-                    {% endfor %}
-                </div>
-            </section>
-        </aside>
-
-        <section
-                class="col-span-12 lg:col-span-9 min-h-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl2 shadow-soft flex flex-col overflow-hidden order-2 lg:order-none">
-            {% if job %}
-            <div class="px-4 md:px-5 py-3 flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                <div class="min-w-0 md:flex-1">
-                    <div class="font-semibold leading-tight">{{ job.title }}</div>
-                    <div class="text-sm text-zinc-500 dark:text-zinc-400 truncate">
-                        {{ job.company }} • {{ job.location }}
                     </div>
-                </div>
-
-                <form
-                        method="POST"
-                        action="/job/{{ job.id }}/update"
-                        class="flex items-center gap-2 md:flex-nowrap md:justify-end md:self-start"
-                        id="jobUpdateForm">
-
-                    <input type="hidden" name="next" value="{{ request.url }}">
-                    <input type="hidden" name="active_tab" id="activeTabInput" value="desc">
-
-                    {% if job.should_apply != "apply" %}
-                    <button
-                            type="submit"
-                            name="decision"
-                            value="apply"
-                            class="flex-1 basis-0 h-9 px-2 md:px-4 rounded-full bg-green-600 dark:bg-green-500 text-white text-xs md:text-sm font-medium whitespace-nowrap hover:brightness-110 transition">
-                        Mark Apply
-                    </button>
-                    {% endif %}
-
-                    {% if job.should_apply != "pass" %}
-                    <button
-                            type="submit"
-                            name="decision"
-                            value="pass"
-                            class="flex-1 basis-0 h-9 px-2 md:px-4 rounded-full bg-red-600 dark:bg-red-500 text-white text-xs md:text-sm font-medium whitespace-nowrap hover:brightness-110 transition">
-                        Mark Pass
-                    </button>
-                    {% endif %}
-
-                    {% if not job.is_applied %}
-                    <button
-                            type="submit"
-                            name="applied"
-                            value="true"
-                            class="flex-1 basis-0 h-9 px-2 md:px-4 rounded-full bg-blue-600 dark:bg-blue-500 text-white text-xs md:text-sm font-medium whitespace-nowrap hover:brightness-110 transition">
-                        Mark Applied
-                    </button>
-                    {% endif %}
-
-                    <a
-                            href="{{ job.link }}"
-                            target="_blank"
-                            class="flex-1 basis-0 h-9 px-2 md:px-4 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-xs md:text-sm font-medium whitespace-nowrap flex items-center justify-center hover:brightness-110 transition">
-                        Indeed
-                    </a>
                 </form>
             </div>
-            <div class="h-10 px-4 md:px-5 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-4 md:gap-6 overflow-x-auto">
-                <button type="button" id="tabDescBtn" onclick="showTab('desc')"
-                        class="h-full text-sm whitespace-nowrap border-b-2 border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400">
-                    Description
-                </button>
-                <button type="button" id="tabAnswerBtn" onclick="showTab('answer')"
-                        class="h-full text-sm whitespace-nowrap border-b-2 border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
-                    Answer
-                </button>
-                <button type="button"
-                        class="h-full text-sm whitespace-nowrap border-b-2 border-transparent text-zinc-500 dark:text-zinc-400">
-                    Interview Prep
-                </button>
-                <button type="button"
-                        class="h-full text-sm whitespace-nowrap border-b-2 border-transparent text-zinc-500 dark:text-zinc-400">
-                    CV Tailoring
-                </button>
-            </div>
 
-            <div id="desc"
-                 class="flex-1 overflow-y-auto p-4 md:p-5 whitespace-pre-wrap text-[15px] leading-7 text-zinc-900 dark:text-zinc-100">
-                {{ job.description }}
-            </div>
+            <main class="min-h-0 flex-1 p-3 md:p-4">
+                <div class="grid h-full min-h-0 grid-cols-1 gap-3 lg:grid-cols-12 lg:gap-4">
+                    <aside class="order-1 flex min-h-0 flex-col lg:col-span-4 xl:col-span-3 lg:order-none">
+                        <section
+                                class="flex min-h-0 flex-col overflow-hidden rounded-xl3 border border-zinc-200/80 bg-white/90 shadow-panel dark:border-zinc-800/80 dark:bg-zinc-900/90">
+                            <div class="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-zinc-200/80 px-4 dark:border-zinc-800/80">
+                                <div class="flex min-w-0 items-center gap-2">
+                                    <h2 class="truncate font-semibold">Jobs</h2>
+                                    <span class="rounded-full bg-zinc-100 px-2 py-1 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">{{ jobs|length }}</span>
+                                </div>
 
-            <div id="answer"
-                 class="hidden flex-1 overflow-y-auto p-4 md:p-5 whitespace-pre-wrap text-[15px] leading-7 text-zinc-900 dark:text-zinc-100">
-                {{ job.answer }}
-            </div>
-            {% else %}
-            <div class="flex-1 flex items-center justify-center text-zinc-500 dark:text-zinc-400 gap-2 p-6 text-center">
-                <i data-lucide="inbox" class="w-5 h-5"></i>
-                No job selected
-            </div>
-            {% endif %}
-        </section>
-    </main>
+                                <div class="flex items-center gap-2">
+                                    <button id="filterButton" type="button" aria-expanded="false"
+                                            aria-controls="filterPanel"
+                                            class="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-zinc-200 bg-zinc-100 px-3 text-sm font-medium text-zinc-800 transition hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 md:px-4">
+                                        <i data-lucide="sliders-horizontal"
+                                           class="h-4 w-4 text-blue-600 dark:text-blue-400"></i>
+                                        <span>Filter</span>
+                                    </button>
+                                    <form method="GET" class="hidden items-center gap">
+                                        <input type="hidden" name="title" value="{{ request.args.get('title','') }}">
+                                        <input type="hidden" name="company"
+                                               value="{{ request.args.get('company','') }}">
+                                        <input type="hidden" name="applied"
+                                               value="{{ request.args.get('applied','') }}">
+                                        <input type="hidden" name="job" value="{{ selected_job_id }}">
+                                        {% for selected_city in request.args.getlist('city') %}
+                                        <input type="hidden" name="city" value="{{ selected_city }}">
+                                        {% endfor %}
 
-    <script>
-        function getSelectedJobId() {
-          const params = new URLSearchParams(window.location.search)
-          return params.get("job")
+                                        <button type="submit" name="decision" value=""
+                                                class="h-8 rounded-full px-3 text-sm transition {% if selected_decision == '' %}bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100{% else %}bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700{% endif %}">
+                                            All
+                                        </button>
+                                        <button type="submit" name="decision" value="apply"
+                                                class="h-8 rounded-full px-3 text-sm transition {% if selected_decision == 'apply' %}bg-green-600 text-white dark:bg-green-500{% else %}bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-500/10 dark:text-green-300 dark:hover:bg-green-500/15{% endif %}">
+                                            Apply
+                                        </button>
+                                        <button type="submit" name="decision" value="pass"
+                                                class="h-8 rounded-full px-3 text-sm transition {% if selected_decision == 'pass' %}bg-red-600 text-white dark:bg-red-500{% else %}bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/15{% endif %}">
+                                            Pass
+                                        </button>
+                                    </form>
+
+                                    <button id="toggleJobsPanelButton" type="button"
+                                            class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 text-zinc-700 transition hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 lg:hidden"
+                                            aria-expanded="true" aria-controls="jobListScroll">
+                                        <i id="toggleJobsPanelIcon" data-lucide="chevron-up" class="h-4 w-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="jobListScroll" class="panel-scroll h-[min(68dvh,720px)] overflow-y-auto p-3 lg:min-h-0 lg:h-auto lg:flex-1">
+                                <div class="space-y-3">
+                                    {% for item in jobs %}
+                                    <a
+                                            href="{{ url_for('dashboard.index', job=item.id, decision=request.args.get('decision'), title=request.args.get('title'), company=request.args.get('company'), applied=request.args.get('applied'), city=request.args.getlist('city')) }}"
+                                            class="job-link block rounded-xl3 border p-3 transition {% if job and job.id == item.id %}border-blue-500 bg-blue-50 shadow-soft dark:bg-blue-500/10{% else %}border-zinc-200 bg-zinc-50 hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800/90 dark:hover:border-zinc-600 dark:hover:bg-zinc-800{% endif %}"
+                                            data-job-id="{{ item.id }}">
+
+                                        <div class="line-clamp-2 font-medium leading-tight">{{ item.title }}</div>
+                                        <div class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ item.company }} •
+                                            {{ item.location }}
+                                        </div>
+
+                                        <div class="mt-3 flex flex-wrap gap-2">
+                                            {% if item.should_apply == "apply" %}
+                                            <span class="rounded-full bg-green-50 px-2 py-1 text-[11px] font-medium text-green-700 dark:bg-green-500/10 dark:text-green-300">Apply</span>
+                                            {% elif item.should_apply == "pass" %}
+                                            <span class="rounded-full bg-red-50 px-2 py-1 text-[11px] font-medium text-red-700 dark:bg-red-500/10 dark:text-red-300">Pass</span>
+                                            {% elif item.should_apply == "error" %}
+                                            <span class="rounded-full bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">Error</span>
+                                            {% elif item.should_apply == "applied" %}
+                                            <span class="rounded-full bg-sky-50 px-2 py-1 text-[11px] font-medium text-sky-700 dark:bg-sky-500/10 dark:text-sky-300">Applied</span>
+                                            {% elif item.should_apply %}
+                                            <span class="rounded-full bg-zinc-200 px-2 py-1 text-[11px] font-medium text-zinc-700 dark:bg-zinc-700 dark:text-zinc-200">{{ item.should_apply }}</span>
+                                            {% endif %}
+
+                                            {% if item.is_applied %}
+                                            <span class="rounded-full bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">Already applied</span>
+                                            {% else %}
+                                            <span class="rounded-full bg-zinc-200 px-2 py-1 text-[11px] font-medium text-zinc-700 dark:bg-zinc-700 dark:text-zinc-200">Not applied</span>
+                                            {% endif %}
+                                        </div>
+                                    </a>
+                                    {% else %}
+                                    <div class="rounded-xl3 border border-dashed border-zinc-300 bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-400">
+                                        No jobs match the current filters.
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </section>
+                    </aside>
+                    <section class="order-2 min-h-[320px] lg:min-h-0 lg:col-span-8 xl:col-span-9 lg:order-none">
+                        <div class="flex h-full min-h-[320px] flex-col overflow-hidden rounded-xl3 border border-zinc-200/80 bg-white/90 shadow-panel dark:border-zinc-800/80 dark:bg-zinc-900/90 sm:min-h-[360px] lg:min-h-0">
+                            {% if job %}
+                            <div class="shrink-0 border-b border-zinc-200/80 px-4 py-4 dark:border-zinc-800/80 md:px-5">
+                                <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                                    <div class="min-w-0 flex-1">
+                                        <div class="text-lg font-semibold tracking-tight">{{ job.title }}</div>
+                                        <div class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ job.company }} •
+                                            {{ job.location }}
+                                        </div>
+                                    </div>
+
+                                    <form method="POST" action="/job/{{ job.id }}/update"
+                                          class="flex flex-wrap items-center gap-2 xl:max-w-[760px] xl:justify-end"
+                                          id="jobUpdateForm">
+                                        <input type="hidden" name="next" value="{{ request.url }}">
+                                        <input type="hidden" name="active_tab" id="activeTabInput" value="desc">
+
+                                        {% if job.should_apply != 'apply' and not job.is_applied %}
+                                        <button type="submit" name="decision" value="apply"
+                                                class="inline-flex h-10 items-center justify-center rounded-full bg-green-600 px-4 text-sm font-medium text-white transition hover:brightness-110 dark:bg-green-500">
+                                            Mark Apply
+                                        </button>
+                                        {% endif %}
+
+                                        {% if job.should_apply != 'pass' %}
+                                        <button type="submit" name="decision" value="pass"
+                                                class="inline-flex h-10 items-center justify-center rounded-full bg-red-600 px-4 text-sm font-medium text-white transition hover:brightness-110 dark:bg-red-500">
+                                            Mark Pass
+                                        </button>
+                                        {% endif %}
+
+                                        {% if not job.is_applied %}
+                                        <button type="submit" name="applied" value="true"
+                                                class="inline-flex h-10 items-center justify-center rounded-full bg-blue-600 px-4 text-sm font-medium text-white transition hover:brightness-110 dark:bg-blue-500">
+                                            Mark Applied
+                                        </button>
+                                        {% else %}
+                                        <span class="inline-flex h-10 items-center justify-center rounded-full bg-blue-50 px-4 text-sm font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">Applied</span>
+                                        {% endif %}
+
+                                        <a href="{{ job.link }}" target="_blank" rel="noopener noreferrer"
+                                           class="inline-flex h-10 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 px-4 text-sm font-medium text-zinc-900 transition hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700">Indeed</a>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="shrink-0 border-b border-zinc-200/80 px-4 dark:border-zinc-800/80 md:px-5">
+                                <div class="flex h-12 items-center gap-5 overflow-x-auto">
+                                    <button type="button" id="tabDescBtn"
+                                            class="h-full whitespace-nowrap border-b-2 border-blue-600 text-sm font-medium text-blue-600 dark:border-blue-400 dark:text-blue-400">
+                                        Description
+                                    </button>
+                                    <button type="button" id="tabAnswerBtn"
+                                            class="h-full whitespace-nowrap border-b-2 border-transparent text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+                                        Answer
+                                    </button>
+                                    <button type="button" id="tabInterviewBtn"
+                                            class="h-full whitespace-nowrap border-b-2 border-transparent text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+                                        Interview Prep
+                                    </button>
+                                    <button type="button" id="tabCvBtn"
+                                            class="h-full whitespace-nowrap border-b-2 border-transparent text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+                                        CV Tailoring
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="desc"
+                                 class="panel-scroll hidden min-h-0 flex-1 overflow-y-auto px-3 py-4 md:px-4 lg:px-5">
+                                <div class="max-w-none whitespace-pre-wrap break-words text-[15px] leading-8 text-zinc-900 dark:text-zinc-100">
+                                    {{ job.description }}
+                                </div>
+                            </div>
+                            <div id="answer"
+                                 class="panel-scroll hidden min-h-0 flex-1 overflow-y-auto px-3 py-4 md:px-4 lg:px-5">
+                                <div class="max-w-none whitespace-pre-wrap break-words text-[15px] leading-8 text-zinc-900 dark:text-zinc-100">
+                                    {{ job.answer }}
+                                </div>
+                            </div>
+                            <div id="interview"
+                                 class="panel-scroll hidden min-h-0 flex-1 overflow-y-auto px-3 py-4 md:px-4 lg:px-5">
+                                <div class="max-w-none whitespace-pre-wrap break-words text-[15px] leading-8 text-zinc-900 dark:text-zinc-100">
+                                    {% if job.interview_prep is defined and job.interview_prep %}{{ job.interview_prep
+                                    }}{% else %}No interview prep available yet.{% endif %}
+                                </div>
+                            </div>
+                            <div id="cv"
+                                 class="panel-scroll hidden min-h-0 flex-1 overflow-y-auto px-3 py-4 md:px-4 lg:px-5">
+                                <div class="max-w-none whitespace-pre-wrap break-words text-[15px] leading-8 text-zinc-900 dark:text-zinc-100">
+                                    {% if job.cv_tailoring is defined and job.cv_tailoring %}{{ job.cv_tailoring }}{%
+                                    else %}No CV tailoring content available yet.{% endif %}
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="flex min-h-[320px] flex-1 items-center justify-center p-6">
+                                <div class="max-w-sm text-center">
+                                    <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                                        <i data-lucide="inbox" class="h-6 w-6"></i>
+                                    </div>
+                                    <div class="text-base font-semibold">No job selected</div>
+                                    <div class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Choose a job from the
+                                        list to view its details.
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getSelectedJobId() {
+      const params = new URLSearchParams(window.location.search)
+      return params.get("job")
+    }
+
+    function getTabStorageKey() {
+      const selectedJobId = getSelectedJobId()
+      return selectedJobId ? `jobDetailTab:${selectedJobId}` : "jobDetailTab"
+    }
+
+    function getJobsPanelStorageKey() {
+      const selectedJobId = getSelectedJobId()
+      return selectedJobId ? `jobsPanelOpen:${selectedJobId}` : "jobsPanelOpen"
+    }
+
+    function updateIcons() {
+      if (window.lucide) {
+        lucide.createIcons()
+      }
+    }
+
+    function setExpanded(button, expanded) {
+      if (button) {
+        button.setAttribute("aria-expanded", expanded ? "true" : "false")
+      }
+    }
+
+    function showTab(id) {
+      const tabs = ["desc", "answer", "interview", "cv"]
+      const buttonMap = {
+        desc: document.getElementById("tabDescBtn"),
+        answer: document.getElementById("tabAnswerBtn"),
+        interview: document.getElementById("tabInterviewBtn"),
+        cv: document.getElementById("tabCvBtn")
+      }
+
+      let activeFound = false
+
+      tabs.forEach(tabId => {
+        const panel = document.getElementById(tabId)
+        const button = buttonMap[tabId]
+        const isActive = tabId === id
+
+        if (panel) {
+          panel.classList.toggle("hidden", !isActive)
+          if (isActive) activeFound = true
         }
 
-        function getTabStorageKey() {
-          const selectedJobId = getSelectedJobId()
-          return selectedJobId ? `jobDetailTab:${selectedJobId}` : "jobDetailTab"
+        if (button) {
+          button.className = isActive
+            ? "h-full whitespace-nowrap border-b-2 border-blue-600 text-sm font-medium text-blue-600 dark:border-blue-400 dark:text-blue-400"
+            : "h-full whitespace-nowrap border-b-2 border-transparent text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
         }
+      })
 
-        function getJobsPanelStorageKey() {
-          const selectedJobId = getSelectedJobId()
-          return selectedJobId ? `jobsPanelOpen:${selectedJobId}` : "jobsPanelOpen"
-        }
+      const finalTab = activeFound ? id : "desc"
+      sessionStorage.setItem(getTabStorageKey(), finalTab)
 
-        function toggleCityDropdown() {
-          const panel = document.getElementById("cityDropdownPanel")
+      const activeTabInput = document.getElementById("activeTabInput")
+      if (activeTabInput) activeTabInput.value = finalTab
+    }
+
+    function updateCityDropdownLabel() {
+      const checkboxes = Array.from(document.querySelectorAll('input[name="city"]'))
+      const label = document.getElementById("cityDropdownLabel")
+      if (!checkboxes.length || !label) return
+
+      const checked = checkboxes.filter(cb => cb.checked)
+      if (checked.length === 0 || checked.length === checkboxes.length) {
+        label.textContent = "All cities"
+      } else if (checked.length === 1) {
+        label.textContent = checked[0].value
+      } else {
+        label.textContent = `${checked.length} cities selected`
+      }
+    }
+
+    function setAllCities(checked) {
+      document.querySelectorAll('input[name="city"]').forEach(cb => {
+        cb.checked = checked
+      })
+      updateCityDropdownLabel()
+    }
+
+    function setJobsPanelState(open) {
+      const panel = document.getElementById("jobListScroll")
+      const icon = document.getElementById("toggleJobsPanelIcon")
+      const button = document.getElementById("toggleJobsPanelButton")
+      if (!panel || !icon || !button) return
+
+      if (window.innerWidth >= 1024) {
+        panel.classList.remove("hidden")
+        icon.setAttribute("data-lucide", "chevron-up")
+        setExpanded(button, true)
+        updateIcons()
+        return
+      }
+
+      panel.classList.toggle("hidden", !open)
+      icon.setAttribute("data-lucide", open ? "chevron-up" : "chevron-down")
+      setExpanded(button, open)
+      sessionStorage.setItem(getJobsPanelStorageKey(), open ? "open" : "closed")
+      updateIcons()
+    }
+
+    function initializeJobsPanel() {
+      if (window.innerWidth >= 1024) {
+        setJobsPanelState(true)
+        return
+      }
+
+      const savedState = sessionStorage.getItem(getJobsPanelStorageKey())
+      if (savedState === "open") {
+        setJobsPanelState(true)
+      } else if (savedState === "closed") {
+        setJobsPanelState(false)
+      } else {
+  setJobsPanelState(true)
+}
+    }
+
+    function toggleElement(button, panel, overlay) {
+      const isHidden = panel.classList.contains("hidden")
+      panel.classList.toggle("hidden", !isHidden)
+      setExpanded(button, isHidden)
+
+      if (overlay) {
+        overlay.classList.toggle("hidden", !isHidden)
+        overlay.classList.toggle("pointer-events-none", !isHidden)
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      updateIcons()
+
+      const filterButton = document.getElementById("filterButton")
+      const runSearchButtons = document.querySelectorAll(".run-search-trigger")
+      const filterPanel = document.getElementById("filterPanel")
+      const filterOverlay = document.getElementById("filterOverlay")
+      const mobileNavButton = document.getElementById("mobileNavButton")
+      const mobileNavPanel = document.getElementById("mobileNavPanel")
+      const cityDropdownWrap = document.getElementById("cityDropdownWrap")
+      const cityDropdownButton = document.getElementById("cityDropdownButton")
+      const cityDropdownPanel = document.getElementById("cityDropdownPanel")
+      const toggleJobsPanelButton = document.getElementById("toggleJobsPanelButton")
+      const tabDescBtn = document.getElementById("tabDescBtn")
+      const tabAnswerBtn = document.getElementById("tabAnswerBtn")
+      const tabInterviewBtn = document.getElementById("tabInterviewBtn")
+      const tabCvBtn = document.getElementById("tabCvBtn")
+      const jobListScroll = document.getElementById("jobListScroll")
+      const form = document.getElementById("jobUpdateForm")
+
+      const savedTab = sessionStorage.getItem(getTabStorageKey()) || "desc"
+      showTab(savedTab)
+      updateCityDropdownLabel()
+      initializeJobsPanel()
+
+      document.querySelectorAll('input[name="city"]').forEach(cb => {
+        cb.addEventListener("change", updateCityDropdownLabel)
+      })
+
+      const selectAllCitiesButton = document.getElementById("selectAllCitiesButton")
+      const selectNoCitiesButton = document.getElementById("selectNoCitiesButton")
+      if (selectAllCitiesButton) selectAllCitiesButton.addEventListener("click", () => setAllCities(true))
+      if (selectNoCitiesButton) selectNoCitiesButton.addEventListener("click", () => setAllCities(false))
+
+      if (cityDropdownButton && cityDropdownPanel) {
+        cityDropdownButton.addEventListener("click", function (event) {
+          event.stopPropagation()
+          const isHidden = cityDropdownPanel.classList.contains("hidden")
+          cityDropdownPanel.classList.toggle("hidden", !isHidden)
+          setExpanded(cityDropdownButton, isHidden)
+        })
+      }
+
+      if (filterButton && filterPanel && filterOverlay) {
+        filterButton.addEventListener("click", function (event) {
+          event.stopPropagation()
+          if (!mobileNavPanel.classList.contains("hidden")) {
+            mobileNavPanel.classList.add("hidden")
+            setExpanded(mobileNavButton, false)
+          }
+
+          if (window.innerWidth >= 768 && filterPanel.classList.contains("hidden")) {
+            const rect = filterButton.getBoundingClientRect()
+            const panelWidth = 420
+            const gap = 8
+            const margin = 12
+
+            let left = rect.left
+            if (left + panelWidth > window.innerWidth - margin) {
+              left = window.innerWidth - panelWidth - margin
+            }
+            if (left < margin) {
+              left = margin
+            }
+
+            filterPanel.style.left = `${Math.round(left)}px`
+            filterPanel.style.top = `${Math.round(rect.bottom + gap)}px`
+            filterPanel.style.right = "auto"
+            filterPanel.style.bottom = "auto"
+            filterPanel.style.width = `${panelWidth}px`
+          }
+
+          toggleElement(filterButton, filterPanel, filterOverlay)
+        })
+      }
+
+      if (mobileNavButton && mobileNavPanel) {
+        mobileNavButton.addEventListener("click", function (event) {
+          event.stopPropagation()
+          if (filterPanel && !filterPanel.classList.contains("hidden")) {
+            filterPanel.classList.add("hidden")
+            filterOverlay.classList.add("hidden", "pointer-events-none")
+            setExpanded(filterButton, false)
+          }
+          const isHidden = mobileNavPanel.classList.contains("hidden")
+          mobileNavPanel.classList.toggle("hidden", !isHidden)
+          setExpanded(mobileNavButton, isHidden)
+        })
+      }
+
+      if (toggleJobsPanelButton) {
+        toggleJobsPanelButton.addEventListener("click", function () {
+          const panel = document.getElementById("jobListScroll")
           if (!panel) return
-          panel.classList.toggle("hidden")
+          setJobsPanelState(panel.classList.contains("hidden"))
+        })
+      }
+
+      if (tabDescBtn) tabDescBtn.addEventListener("click", () => showTab("desc"))
+      if (tabAnswerBtn) tabAnswerBtn.addEventListener("click", () => showTab("answer"))
+      if (tabInterviewBtn) tabInterviewBtn.addEventListener("click", () => showTab("interview"))
+      if (tabCvBtn) tabCvBtn.addEventListener("click", () => showTab("cv"))
+
+      if (jobListScroll) {
+        const savedScrollTop = sessionStorage.getItem("jobListScrollTop")
+        if (savedScrollTop !== null) {
+          jobListScroll.scrollTop = parseInt(savedScrollTop, 10) || 0
         }
 
-        function setAllCities(checked) {
-          document.querySelectorAll('input[name="city"]').forEach(function(cb) {
-            cb.checked = checked
-          })
-          updateCityDropdownLabel()
-        }
-
-        function updateCityDropdownLabel() {
-          const checkboxes = Array.from(document.querySelectorAll('input[name="city"]'))
-          const checked = checkboxes.filter(cb => cb.checked)
-          const label = document.getElementById("cityDropdownLabel")
-
-          if (!label) return
-
-          if (checked.length === 0 || checked.length === checkboxes.length) {
-            label.textContent = "All cities"
-          } else if (checked.length === 1) {
-            label.textContent = checked[0].value
-          } else {
-            label.textContent = `${checked.length} cities selected`
-          }
-        }
-
-        function showTab(id) {
-          const desc = document.getElementById("desc")
-          const answer = document.getElementById("answer")
-          const tabDescBtn = document.getElementById("tabDescBtn")
-          const tabAnswerBtn = document.getElementById("tabAnswerBtn")
-          const activeTabInput = document.getElementById("activeTabInput")
-
-          if (!desc || !answer) return
-
-          desc.classList.add("hidden")
-          answer.classList.add("hidden")
-
-          if (tabDescBtn) {
-            tabDescBtn.classList.remove("border-blue-600", "dark:border-blue-400", "text-blue-600", "dark:text-blue-400")
-            tabDescBtn.classList.add("border-transparent", "text-zinc-500", "dark:text-zinc-400")
-          }
-
-          if (tabAnswerBtn) {
-            tabAnswerBtn.classList.remove("border-blue-600", "dark:border-blue-400", "text-blue-600", "dark:text-blue-400")
-            tabAnswerBtn.classList.add("border-transparent", "text-zinc-500", "dark:text-zinc-400")
-          }
-
-          const target = document.getElementById(id)
-          if (target) {
-            target.classList.remove("hidden")
-          }
-
-          if (id === "desc" && tabDescBtn) {
-            tabDescBtn.classList.add("border-blue-600", "dark:border-blue-400", "text-blue-600", "dark:text-blue-400")
-            tabDescBtn.classList.remove("border-transparent", "text-zinc-500", "dark:text-zinc-400")
-          }
-
-          if (id === "answer" && tabAnswerBtn) {
-            tabAnswerBtn.classList.add("border-blue-600", "dark:border-blue-400", "text-blue-600", "dark:text-blue-400")
-            tabAnswerBtn.classList.remove("border-transparent", "text-zinc-500", "dark:text-zinc-400")
-          }
-
-          sessionStorage.setItem(getTabStorageKey(), id)
-
-          if (activeTabInput) {
-            activeTabInput.value = id
-          }
-        }
-
-        function setJobsPanelState(open) {
-          const panel = document.getElementById("mobileJobListPanel")
-          const icon = document.getElementById("toggleJobsPanelIcon")
-          const button = document.getElementById("toggleJobsPanelButton")
-
-          if (!panel || !icon || !button) return
-
-          if (window.innerWidth >= 1024) {
-            panel.classList.remove("hidden")
-            icon.setAttribute("data-lucide", "chevron-up")
-            lucide.createIcons()
-            return
-          }
-
-          if (open) {
-            panel.classList.remove("hidden")
-            icon.setAttribute("data-lucide", "chevron-up")
-          } else {
-            panel.classList.add("hidden")
-            icon.setAttribute("data-lucide", "chevron-down")
-          }
-
-          sessionStorage.setItem(getJobsPanelStorageKey(), open ? "open" : "closed")
-          lucide.createIcons()
-        }
-
-        function initializeJobsPanel() {
-          const panel = document.getElementById("mobileJobListPanel")
-          const button = document.getElementById("toggleJobsPanelButton")
-          if (!panel || !button) return
-
-          if (window.innerWidth >= 1024) {
-            setJobsPanelState(true)
-            return
-          }
-
-          const savedState = sessionStorage.getItem(getJobsPanelStorageKey())
-          if (savedState === "open") {
-            setJobsPanelState(true)
-          } else if (savedState === "closed") {
-            setJobsPanelState(false)
-          } else {
-            setJobsPanelState(getSelectedJobId() ? false : true)
-          }
-
-          button.addEventListener("click", function () {
-            setJobsPanelState(panel.classList.contains("hidden"))
-          })
-        }
-
-        const jobListScroll = document.getElementById("jobListScroll")
-        if (jobListScroll) {
-          const savedScrollTop = sessionStorage.getItem("jobListScrollTop")
-          if (savedScrollTop !== null) {
-            jobListScroll.scrollTop = parseInt(savedScrollTop, 10) || 0
-          }
-
-          jobListScroll.addEventListener("scroll", function() {
-            sessionStorage.setItem("jobListScrollTop", String(jobListScroll.scrollTop))
-          })
-
-          document.querySelectorAll(".job-link").forEach(function(link) {
-            link.addEventListener("click", function() {
-              sessionStorage.setItem("jobListScrollTop", String(jobListScroll.scrollTop))
-              if (window.innerWidth < 1024) {
-                sessionStorage.setItem(getJobsPanelStorageKey(), "closed")
-              }
-            })
-          })
-        }
-
-        document.addEventListener("DOMContentLoaded", function () {
-          const savedTab = sessionStorage.getItem(getTabStorageKey()) || "desc"
-          showTab(savedTab)
-          updateCityDropdownLabel()
-          initializeJobsPanel()
-
-          const form = document.getElementById("jobUpdateForm")
-          if (form) {
-            form.addEventListener("submit", function () {
-              sessionStorage.setItem("jobListScrollTop", String(jobListScroll ? jobListScroll.scrollTop : 0))
-              const activeTab = sessionStorage.getItem(getTabStorageKey()) || "desc"
-              const activeTabInput = document.getElementById("activeTabInput")
-              if (activeTabInput) {
-                activeTabInput.value = activeTab
-              }
-            })
-          }
-
-          const filterButton = document.getElementById("filterButton")
-          const filterPanel = document.getElementById("filterPanel")
-
-          if (filterButton && filterPanel) {
-            filterButton.addEventListener("click", function (e) {
-              e.stopPropagation()
-              filterPanel.classList.toggle("hidden")
-            })
-          }
-
-          window.addEventListener("resize", function () {
-            initializeJobsPanel()
-          })
-
-          document.addEventListener("click", function (event) {
-            const dropdown = document.querySelector(".city-dropdown")
-            const cityPanel = document.getElementById("cityDropdownPanel")
-
-            if (dropdown && cityPanel && !dropdown.contains(event.target)) {
-              cityPanel.classList.add("hidden")
-            }
-
-            if (filterPanel && filterButton && !filterPanel.contains(event.target) && !filterButton.contains(event.target)) {
-              filterPanel.classList.add("hidden")
-            }
-          })
+        jobListScroll.addEventListener("scroll", function () {
+          sessionStorage.setItem("jobListScrollTop", String(jobListScroll.scrollTop))
         })
 
-        lucide.createIcons()
-    </script>
-</div>
+        document.querySelectorAll(".job-link").forEach(link => {
+          link.addEventListener("click", function () {
+            sessionStorage.setItem("jobListScrollTop", String(jobListScroll.scrollTop))
+            if (window.innerWidth < 1024) {
+  sessionStorage.setItem(getJobsPanelStorageKey(), "open")
+}
+          })
+        })
+      }
+
+      if (form) {
+        form.addEventListener("submit", function () {
+          sessionStorage.setItem("jobListScrollTop", String(jobListScroll ? jobListScroll.scrollTop : 0))
+          const activeTab = sessionStorage.getItem(getTabStorageKey()) || "desc"
+          const activeTabInput = document.getElementById("activeTabInput")
+          if (activeTabInput) activeTabInput.value = activeTab
+        })
+      }
+
+      if (filterOverlay) {
+        filterOverlay.addEventListener("click", function () {
+          filterPanel.classList.add("hidden")
+          filterOverlay.classList.add("hidden", "pointer-events-none")
+          setExpanded(filterButton, false)
+        })
+      }
+
+      document.addEventListener("click", function (event) {
+        if (cityDropdownWrap && cityDropdownPanel && !cityDropdownWrap.contains(event.target)) {
+          cityDropdownPanel.classList.add("hidden")
+          setExpanded(cityDropdownButton, false)
+        }
+
+        if (filterPanel && filterButton && !filterPanel.classList.contains("hidden") && !filterPanel.contains(event.target) && !filterButton.contains(event.target)) {
+          filterPanel.classList.add("hidden")
+          if (filterOverlay) filterOverlay.classList.add("hidden", "pointer-events-none")
+          setExpanded(filterButton, false)
+        }
+
+        if (mobileNavPanel && mobileNavButton && !mobileNavPanel.classList.contains("hidden") && !mobileNavPanel.contains(event.target) && !mobileNavButton.contains(event.target)) {
+          mobileNavPanel.classList.add("hidden")
+          setExpanded(mobileNavButton, false)
+        }
+      })
+
+      runSearchButtons.forEach(button => {
+        button.addEventListener("click", function () {
+          window.dispatchEvent(new CustomEvent("jobtrackr:run-search"))
+        })
+      })
+
+      window.addEventListener("resize", function () {
+        initializeJobsPanel()
+        if (window.innerWidth >= 1024) {
+          if (mobileNavPanel) mobileNavPanel.classList.add("hidden")
+          if (mobileNavButton) setExpanded(mobileNavButton, false)
+          if (filterOverlay) filterOverlay.classList.add("hidden", "pointer-events-none")
+        }
+
+        if (window.innerWidth >= 768 && filterPanel && !filterPanel.classList.contains("hidden")) {
+          const rect = filterButton.getBoundingClientRect()
+          const panelWidth = 420
+          const gap = 8
+          const margin = 12
+
+          let left = rect.left
+          if (left + panelWidth > window.innerWidth - margin) {
+            left = window.innerWidth - panelWidth - margin
+          }
+          if (left < margin) {
+            left = margin
+          }
+
+          filterPanel.style.left = `${Math.round(left)}px`
+          filterPanel.style.top = `${Math.round(rect.bottom + gap)}px`
+          filterPanel.style.right = "auto"
+          filterPanel.style.bottom = "auto"
+          filterPanel.style.width = `${panelWidth}px`
+        }
+      })
+    })
+</script>
 </body>
 </html>
