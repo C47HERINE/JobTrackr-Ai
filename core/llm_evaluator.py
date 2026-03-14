@@ -44,10 +44,8 @@ class Evaluator:
                 "You are a hiring-screening classifier. Decide whether the candidate is a match for this job.\n\n"
                 "Rules:\n"
                 "- The FIRST word of your reply MUST be exactly either: apply or pass (lowercase).\n"
-                "- Output MUST be exactly 2 lines.\n"
-                "- Line 1: apply or pass only.\n"
-                "- Line 2: a brief reason (max 40 words), "
-                "referencing only evidence from the candidate context and job description.\n\n"
+                "- After the first word, provide a clear explanation referencing evidence from the candidate context and the job description.\n"
+                "- The explanation should justify the decision and may include multiple sentences if needed.\n\n"
                 f"Candidate Context:\n{self.user_data}\n\n"
                 f"Job (JSON):\n{job_information}\n\n"
                 "Decision criteria:\n"
@@ -60,9 +58,13 @@ class Evaluator:
             answer = None
             while attempt < max_attempts:
                 answer = self.send_chat(prompt, model="gemma3:12b")
-                first_line = answer.split('\n', 1)[0].strip().lower()
-                decision = first_line.split()[0]
-                if decision in ("apply", "pass"):
+                decision = None
+                for word in answer.lower().split()[:5]:
+                    word = word.strip(".,:;!?()[]\"'")
+                    if word in ("apply", "pass"):
+                        decision = word
+                        break
+                if decision:
                     break
                 attempt += 1
             if decision not in ("apply", "pass"):

@@ -27,7 +27,7 @@ def search():
                 locations=search_config['locations'],
                 radii=search_config['radii']
             )
-            new_jobs = [job for job in updated_data if job.get("decision") not in {"apply", "pass"}]
+            new_jobs = [job for job in updated_data if job.get("should_apply") not in {"apply", "pass"}]
             if new_jobs:
                 evaluated_data = evaluator.get_advice(updated_data)
                 db.save_jobs(evaluated_data)

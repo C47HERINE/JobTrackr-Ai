@@ -143,6 +143,9 @@ class JobFinder:
                 for x in range(len(data)):
                     if data[x].get('description'):
                         continue
+                    link = data[x].get("link")
+                    if not link.startswith(INDEED_URL):
+                        continue
                     self.get_source(data[x]["link"])
                     data[x] = self.parse_job_detail(data[x])
                 data = [job for job in data if job.get("description")]
