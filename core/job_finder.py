@@ -2,7 +2,7 @@ import json
 import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.common import NoSuchElementException
+from selenium.common import NoSuchElementException, InvalidCookieDomainException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
@@ -18,12 +18,13 @@ class JobFinder:
         self.options.add_experimental_option("useAutomationExtension", False)
         self.driver = webdriver.Chrome(options=self.options)
         self.driver.execute_script("""Object.defineProperty(navigator, 'webdriver', {get: () => undefined})""")
-
+        self.num_of_pages = 3
 
     def get_cookies(self):
         """Load Chrome cookies to get session credentials"""
         try:
             self.driver.get(INDEED_URL + "/")
+            time.sleep(3)
             with open("user/cookies/cookies.json", "r") as cookie_file:
                 cookies = json.load(cookie_file)
             for cookie in cookies:
@@ -37,9 +38,12 @@ class JobFinder:
                     cookie_dict["expiry"] = int(cookie["expirationDate"])
                 self.driver.add_cookie(cookie_dict)
             self.driver.refresh()
-        except FileNotFoundError:
-            print("cookies not found")
-            pass
+        except Exception as e:
+            if e is FileNotFoundError:
+                print("cookies not found")
+                pass
+            elif e is InvalidCookieDomainException:
+                self.num_of_pages = 1
 
 
     def get_source(self, url: str) -> str:
@@ -49,6 +53,10 @@ class JobFinder:
         return self.driver.page_source
 
 
+    def page_count(self):
+        return (self.num_of_pages - 1) * 10
+
+
     def find_job(self, data: list[dict], keywords: list, locations: list, radii: list) -> list[dict]:
         """Browse result pages to get raw data including links to job details"""
         known_id = [data[y]['indeed_id'] for y in range(len(data))]
@@ -56,7 +64,7 @@ class JobFinder:
             for radius in radii:
                 for keyword in keywords:
                     page = 0
-                    while page < 50:
+                    while page < self.page_count():
                         search_url = f"{INDEED_URL}/jobs?q={keyword}&l={location}%2C%20QC&radius={radius}&start={page}"
                         _soup = BeautifulSoup(self.get_source(url=search_url), 'html.parser')
                         jobs = _soup.find_all("li", class_="css-1ac2h1w eu4oa1w0")

@@ -4,10 +4,10 @@ from threading import Thread
 import json
 import time
 
+
 db = JobRepository()
 app = create_app(db)
-evaluator = Evaluator()
-finder = JobFinder()
+
 
 def search():
     while True:
@@ -16,8 +16,9 @@ def search():
                 state = json.load(json_file)
         except FileNotFoundError:
             state = {"last_run": 0}
-
         if time.time() - state["last_run"] >= 21600:
+            evaluator = Evaluator()
+            finder = JobFinder()
             with open('user/search_config.json', 'r') as file:
                 search_config = json.load(file)
             updated_data = finder.get_job(
@@ -34,16 +35,57 @@ def search():
             with open("user/state.json", "w") as json_file:
                 json.dump(state, json_file, indent=4)
             time.sleep(900)
+        else:
+            time.sleep(900)
 
 Thread(target=search, daemon=True).start()
 
-app.run()
-#TODO add an  additional route/page for jobs with interviews, allow to move from where they are to here
+app.run(host="0.0.0.0", port=5000)
+
+#----------#
+
+#INTERVIEW AND APPLICATION FOLLOW-UP MANAGEMENT
+
+#TODO add an  additional route/page for jobs with interviews
 
 #TODO make a search route/page to target specific job data for interview/response
 
-#TODO for job labeled as "apply" but not yet applied use selenium to apply with indeed cv
-
 #TODO in the database: log the job applied, the job pending for manual offsite application and n/a if ai answered no
 
-#TODO create a user login route and set a user db
+#TODO A dedicated interview tracking page
+
+#----------#
+
+#ADDITIONAL FILTER
+
+#TODO make an hidden job section to separate those rejected by the user
+
+#----------#
+
+#APPLY USING BROWSER AUTOMATION
+
+#TODO for job labeled as "apply" but not yet applied use selenium to apply with indeed cv
+
+#----------#
+
+#EXTEND JOB DETAIL
+
+#TODO LLM mock interview support
+
+#TODO LLM-tailored CV generation based on selected job postings from the web app
+
+#----------#
+
+#PER USER LOGIN AND ENVIRONMENT
+
+#TODO User authentication and per-user data separation: create a user login route and set a user db
+
+#TODO A settings page to manage user configuration, search settings and app data from the web interface
+
+#----------#
+
+#ADDITIONAL PAGES
+
+#TODO A chat tab for direct interaction with the AI for broader job-search guidance
+
+#TODO Add an optional full page to manage job postings individually (detailed section)

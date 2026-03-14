@@ -1,3 +1,5 @@
+import re
+
 from flask import request
 
 
@@ -41,3 +43,11 @@ def filter_jobs(job_list):
         filtered_results.append(job)
     filtered_results.sort(key=lambda job_item: int(job_item.get("time_stamp", 0)), reverse=True)
     return filtered_results
+
+
+def normalize_job_list(job_list, field="description"):
+    for job in job_list:
+        text = job.get(field)
+        if isinstance(text, str):
+            job[field] = re.sub(r"\n{3,}", "\n\n", text).strip()
+    return job_list
