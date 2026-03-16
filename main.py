@@ -3,8 +3,10 @@ from core import JobFinder, Evaluator, JobRepository
 from threading import Thread
 import json
 import time
+import logging
 
 
+log = logging.getLogger(__name__)
 db = JobRepository()
 app = create_app(db)
 
@@ -12,31 +14,35 @@ app = create_app(db)
 def search():
     while True:
         try:
-            with open("user/state.json", "r") as json_file:
-                state = json.load(json_file)
-        except FileNotFoundError:
-            state = {"last_run": 0}
-        if time.time() - state["last_run"] >= 21600:
-            evaluator = Evaluator()
-            finder = JobFinder()
-            with open('user/search_config.json', 'r') as file:
-                search_config = json.load(file)
-            updated_data = finder.get_job(
-                data=db.load_jobs(),
-                keywords=search_config['keywords'],
-                locations=search_config['locations'],
-                radii=search_config['radii']
-            )
-            new_jobs = [job for job in updated_data if job.get("should_apply") not in {"apply", "pass"}]
-            if new_jobs:
-                evaluated_data = evaluator.get_advice(updated_data)
-                db.save_jobs(evaluated_data)
-            state["last_run"] = int(time.time())
-            with open("user/state.json", "w") as json_file:
-                json.dump(state, json_file, indent=4)
-            time.sleep(900)
-        else:
-            time.sleep(900)
+            try:
+                with open("user/state.json", "r") as json_file:
+                    state = json.load(json_file)
+            except FileNotFoundError:
+                state = {"last_run": 0}
+            if time.time() - state["last_run"] >= 21600:
+                evaluator = Evaluator()
+                finder = JobFinder()
+                with open('user/search_config.json', 'r') as file:
+                    search_config = json.load(file)
+                updated_data = finder.get_job(
+                    data=db.load_jobs(),
+                    keywords=search_config['keywords'],
+                    locations=search_config['locations'],
+                    radii=search_config['radii']
+                )
+                new_jobs = [job for job in updated_data if job.get("should_apply") not in {"apply", "pass"}]
+                if new_jobs:
+                    evaluated_data = evaluator.get_advice(updated_data)
+                    db.save_jobs(evaluated_data)
+                state["last_run"] = int(time.time())
+                with open("user/state.json", "w") as json_file:
+                    json.dump(state, json_file, indent=4)
+                time.sleep(3600)
+            else:
+                time.sleep(3600)
+        except Exception as e:
+            print(e)
+
 
 Thread(target=search, daemon=True).start()
 
@@ -46,7 +52,7 @@ app.run(host="0.0.0.0", port=5000)
 
 #INTERVIEW AND APPLICATION FOLLOW-UP MANAGEMENT
 
-#TODO add an  additional route/page for jobs with interviews
+#TODO add an additional route/page for jobs with interviews
 
 #TODO make a search route/page to target specific job data for interview/response
 

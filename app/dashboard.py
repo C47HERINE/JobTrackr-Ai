@@ -41,8 +41,11 @@ def dashboard_blueprints(job_db):
                 if decision_value is not None and decision_value != "":
                     job["should_apply"] = decision_value
                 if applied_clicked:
-                    job["is_applied"] = True
-                    job["should_apply"] = "applied"
+                    if applied_clicked:
+                        if not job.get("is_applied"):
+                            job["is_applied"] = True
+                        else:
+                            job["is_applied"] = False
                 break
         job_db.save_jobs(job_list)
         if next_url:

@@ -20,6 +20,7 @@ class JobFinder:
         self.driver.execute_script("""Object.defineProperty(navigator, 'webdriver', {get: () => undefined})""")
         self.num_of_pages = 10
 
+
     def get_cookies(self):
         """Load Chrome cookies to get session credentials"""
         try:
@@ -45,11 +46,13 @@ class JobFinder:
             elif e is InvalidCookieDomainException:
                 self.num_of_pages = 1
 
+
     def get_source(self, url: str) -> str:
         """use webdriver to open page and get source, must load get_cookies to log in"""
         self.driver.get(url)
         time.sleep(3)
         return self.driver.page_source
+
 
     def find_job(self, data: list[dict], keywords: list, locations: list, radii: list) -> list[dict]:
         """Browse result pages to get raw data including links to job details"""

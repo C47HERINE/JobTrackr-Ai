@@ -19,7 +19,7 @@ class Evaluator:
       return string
 
 
-    def send_chat(self, prompt: str, model: str = "gemma3:12b") -> str:
+    def send_chat(self, prompt: str, model: str = "gemma3:latest") -> str:
       payload = {
         "model": model,
         "messages": [
@@ -57,7 +57,7 @@ class Evaluator:
             decision = None
             answer = None
             while attempt < max_attempts:
-                answer = self.send_chat(prompt, model="gemma3:12b")
+                answer = self.send_chat(prompt, model="gemma3:latest")
                 decision = None
                 for word in answer.lower().split()[:5]:
                     word = word.strip(".,:;!?()[]\"'")
