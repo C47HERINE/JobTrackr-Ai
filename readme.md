@@ -1,5 +1,9 @@
-```markdown
 # JobTrackr-AI
+
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![Flask](https://img.shields.io/badge/framework-Flask-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Status](https://img.shields.io/badge/status-active%20development-orange)
 
 JobTrackr-AI is a local-first job search assistant that automates job discovery, enriches listings with scraped data, evaluates them with a local LLM, and provides a Flask web interface to review and manage opportunities.
 
@@ -19,15 +23,23 @@ Everything runs locally.
 
 ## Features
 
-- Automated job discovery using configurable keywords, locations, and search radius
-- Selenium + BeautifulSoup pipeline for scraping listings and job details
-- AI-powered job evaluation using a local LLM through Ollama
-- SQLite database managed with SQLAlchemy
-- Flask web interface for reviewing and managing job listings
-- Background search scheduler for periodic updates
-- Job deduplication using platform job IDs
-- Persistent state tracking to prevent redundant runs
-- Immediate job processing pipeline (scrape → evaluate → save)
+* Automated job discovery using configurable keywords, locations, search radius, and LLM model
+* Selenium + BeautifulSoup pipeline for scraping listings and job details
+* AI-powered job evaluation using a configurable local LLM through Ollama
+* SQLite database managed with SQLAlchemy
+* Flask web interface for reviewing and managing job listings
+* Background search scheduler for periodic updates
+* Job deduplication using platform job IDs
+* Persistent state tracking to prevent redundant runs
+* Immediate job processing pipeline (scrape → evaluate → save)
+
+---
+
+## Interface
+
+Example dashboard view:
+
+![JobTrackr Dashboard](docs/dashboard.png)
 
 ---
 
@@ -37,13 +49,14 @@ Each search cycle follows a streaming pipeline:
 
 1. Launch Selenium with Chrome
 2. Load an authenticated browser session using exported cookies
-3. Search for jobs using configured keywords and locations
+3. Search for jobs using configured keywords, locations, and radius
 4. For each job listing:
-   - extract listing metadata
-   - open the job detail page
-   - scrape description, skills, and job type
-   - evaluate the job using the LLM
-   - store the result in the database
+
+   * extract listing metadata
+   * open the job detail page
+   * scrape description, skills, and job type
+   * evaluate the job using the configured LLM
+   * store the result in the database
 5. Continue through remaining listings and pages
 6. Update the last run timestamp
 
@@ -53,50 +66,45 @@ Jobs are processed one at a time to ensure each result is immediately saved.
 
 ## Tech Stack
 
-- Python
-- Flask
-- SQLAlchemy
-- SQLite
-- Selenium
-- BeautifulSoup4
-- Ollama
-- Local LLM (default: Gemma)
+* Python
+* Flask
+* SQLAlchemy
+* SQLite
+* Selenium
+* BeautifulSoup4
+* Ollama
+* Local LLMs
 
 ---
 
 ## Project Structure
 
-```
-
+```text
 JobTrackr-AI/
 ├── main.py
 ├── requirements.txt
 ├── app/                      # Flask application
-│
 ├── core/                     # Core application logic
 │   ├── job_finder.py         # Selenium scraping pipeline
 │   ├── llm_evaluator.py      # LLM classification logic
 │   └── job_database.py       # SQLAlchemy job repository
-│
 ├── user/
 │   ├── cookies/              # Exported browser cookies
 │   │   └── cookies.json
 │   ├── search_config.json    # Search configuration
 │   └── state.json            # Last run timestamp
-│
 └── data/                     # Optional runtime data
-
 ```
 
 ---
 
 ## Requirements
 
-- Python 3.10 or newer
-- **Google Chrome browser**
-- ChromeDriver compatible with your Chrome version
-- Ollama installed locally
-- A supported LLM model (example: Gemma)
+* Python 3.10 or newer
+* Google Chrome browser
+* ChromeDriver compatible with your Chrome version
+* Ollama installed locally
+* At least one Ollama model pulled locally
 
 Chrome is required because Selenium controls a real Chrome instance for scraping and authenticated sessions.
 
@@ -106,80 +114,55 @@ Chrome is required because Selenium controls a real Chrome instance for scraping
 
 ### 1. Clone the repository
 
-```
-
-git clone [https://github.com/C47HERINE/JobTrackr-AI.git](https://github.com/C47HERINE/JobTrackr-AI.git)
+```bash
+git clone https://github.com/C47HERINE/JobTrackr-AI.git
 cd JobTrackr-AI
-
 ```
 
 ### 2. Create a virtual environment
 
-```
-
+```bash
 python -m venv .venv
 source .venv/bin/activate
-
 ```
 
 Windows:
 
-```
-
+```bash
 .venv\Scripts\activate
-
 ```
 
 ### 3. Install dependencies
 
-```
-
+```bash
 pip install -r requirements.txt
-
 ```
 
 ### 4. Install Ollama
 
 Download and install Ollama:
 
-```
-
 [https://ollama.com/download](https://ollama.com/download)
 
-```
+Then pull the model you want to use in `user/search_config.json`, for example:
 
-Then download a model:
-
-```
-
+```bash
 ollama pull gemma3:12b
-
 ```
 
 ---
 
 ## Exporting Chrome Session Cookies
 
-Some job platforms limit access to job details or apply stricter rate limits to unauthenticated users.  
-JobTrackr-AI can reuse your authenticated browser session by loading cookies from Chrome.
+Some job platforms limit access to job details or apply stricter rate limits to unauthenticated users. JobTrackr-AI can reuse your authenticated browser session by loading cookies from Chrome.
 
 ### 1. Install a Chrome cookie export extension
 
-Install a cookie exporter such as:
-
-**Get cookies.txt LOCALLY**
-
-Chrome Web Store:
-
-```
+Install **Get cookies.txt LOCALLY**:
 
 [https://chrome.google.com/webstore/detail/get-cookiestxt-locally](https://chrome.google.com/webstore/detail/get-cookiestxt-locally)
 
-```
-
 Any extension capable of exporting cookies as JSON will work.
-
----
 
 ### 2. Log into the job platform
 
@@ -187,42 +170,30 @@ Open Chrome and sign into the job platform you want to scrape.
 
 Example:
 
-```
-
 [https://indeed.com](https://indeed.com)
 
-```
-
 Make sure you are fully logged in and able to view job listings normally.
-
----
 
 ### 3. Export cookies
 
 1. Click the cookie export extension icon
 2. Export cookies for the current site
-3. Save the file in **JSON format**
-
----
+3. Save the file in JSON format
 
 ### 4. Place the cookies file in the project
 
 Move the exported file to:
 
-```
-
+```text
 user/cookies/cookies.json
-
 ```
 
 Example:
 
-```
-
+```text
 user/
 ├── cookies/
 │   └── cookies.json
-
 ```
 
 At runtime the scraper will load these cookies into the Selenium session to replicate your logged-in browser state.
@@ -233,11 +204,9 @@ At runtime the scraper will load these cookies into the Selenium session to repl
 
 Create or edit:
 
-```
-
+```text
 user/search_config.json
-
-````
+```
 
 Example:
 
@@ -245,19 +214,21 @@ Example:
 {
   "keywords": ["python", "machine learning", "data scientist"],
   "locations": ["Montreal", "Longueuil", "Brossard"],
-  "radii": [25]
+  "radii": [25],
+  "llm_model": "gemma3:12b"
 }
-````
+```
 
 Field descriptions:
 
-* **keywords** – job search terms
-* **locations** – search locations
-* **radii** – search radius values
+* `keywords` – job search terms
+* `locations` – search locations
+* `radii` – search radius values
+* `llm_model` – Ollama model used for job evaluation
 
 The application also stores the timestamp of the last successful run in:
 
-```
+```text
 user/state.json
 ```
 
@@ -275,7 +246,7 @@ Example:
 
 Start the system:
 
-```
+```bash
 python main.py
 ```
 
@@ -289,7 +260,7 @@ At startup the application will:
 
 The web interface will be available at:
 
-```
+```text
 http://127.0.0.1:5000
 ```
 
@@ -357,9 +328,4 @@ See the `LICENSE` file for details.
 
 Created by **C47HERINE**
 
-GitHub:
-
 [https://github.com/C47HERINE](https://github.com/C47HERINE)
-
-```
-```
