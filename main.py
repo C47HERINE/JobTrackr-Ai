@@ -18,10 +18,10 @@ def search_job():
         except FileNotFoundError:
             state = {"last_run": 0}
         if time.time() - state["last_run"] >= 21600:
-            evaluator = Evaluator()
-            finder = JobFinder()
             with open("user/search_config.json", "r") as file:
                 search_config = json.load(file)
+            evaluator = Evaluator(search_config['llm_model'])
+            finder = JobFinder()
             finder.get_job(
                 data=db.load_jobs(),
                 keywords=search_config["keywords"],

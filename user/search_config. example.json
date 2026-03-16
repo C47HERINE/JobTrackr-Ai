@@ -6,5 +6,6 @@
     "here"
   ],
   "locations": ["city"],
-  "radii": ["15", "25"]
+  "radii": ["15", "25"],
+  "llm_model": "gemma3:12b"
 }

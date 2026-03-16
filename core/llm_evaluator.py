@@ -3,10 +3,11 @@ import requests
 
 
 class Evaluator:
-    def __init__(self):
+    def __init__(self, llm):
         self.sections = ['title', 'job_type', 'skills', 'description']
         self.ollama_endpoint = "http://10.10.10.5:11434/api/chat"
         self.user_data = "".join(open(os.path.join('user/data/', f)).read() for f in os.listdir('user/data'))
+        self.llm = llm
 
 
     def load_job_string(self, data: dict):
@@ -19,9 +20,9 @@ class Evaluator:
       return string
 
 
-    def send_chat(self, prompt: str, model: str = "gemma3:12b") -> str:
+    def send_chat(self, prompt: str) -> str:
       payload = {
-        "model": model,
+        "model": self.llm,
         "messages": [
           {"role": "user", "content": prompt}
         ],
@@ -55,7 +56,7 @@ class Evaluator:
         decision = None
         answer = None
         while attempt < max_attempts:
-            answer = self.send_chat(prompt, model="gemma3:12b")
+            answer = self.send_chat(prompt)
             decision = None
             words = answer.lower().split()
             if words:
