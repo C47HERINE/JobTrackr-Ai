@@ -95,3 +95,7 @@ class JobRepository:
                     self._create_job(job)
                 else:
                     self._update_by_indeed_id(job)
+
+
+    def save_job(self, job: dict):
+        self.save_jobs([job])

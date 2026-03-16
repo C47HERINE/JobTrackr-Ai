@@ -22,7 +22,6 @@ class JobFinder:
 
 
     def get_cookies(self):
-        """Load Chrome cookies to get session credentials"""
         try:
             self.driver.get(INDEED_URL + "/")
             time.sleep(3)
@@ -39,12 +38,10 @@ class JobFinder:
                     cookie_dict["expiry"] = int(cookie["expirationDate"])
                 self.driver.add_cookie(cookie_dict)
             self.driver.refresh()
-        except Exception as e:
-            if e is FileNotFoundError:
-                print("cookies not found")
-                pass
-            elif e is InvalidCookieDomainException:
-                self.num_of_pages = 1
+        except FileNotFoundError:
+            print("cookies not found")
+        except InvalidCookieDomainException:
+            self.num_of_pages = 1
 
 
     def get_source(self, url: str) -> str:
@@ -54,65 +51,13 @@ class JobFinder:
         return self.driver.page_source
 
 
-    def find_job(self, data: list[dict], keywords: list, locations: list, radii: list) -> list[dict]:
-        """Browse result pages to get raw data including links to job details"""
-        known_id = [data[y]['indeed_id'] for y in range(len(data))]
-        for location in locations:
-            for radius in radii:
-                for keyword in keywords:
-                    page = 0
-                    repeated_pages = 0
-                    while page < self.num_of_pages * 10:
-                        search_url = f"{INDEED_URL}/jobs?q={keyword}&l={location}%2C%20QC&radius={radius}&start={page}"
-                        _soup = BeautifulSoup(self.get_source(url=search_url), 'html.parser')
-                        jobs = _soup.find_all("li", class_="css-1ac2h1w eu4oa1w0")
-                        if not jobs:
-                            break
-                        new_jobs_this_page = 0
-                        page_ids = []
-                        for job in jobs:
-                            a_tag = job.find("a", attrs={"data-jk": True})
-                            if not a_tag:
-                                continue
-                            job_id = a_tag["data-jk"]
-                            if not job_id:
-                                continue
-                            if job_id in page_ids:
-                                continue
-                            page_ids.append(job_id)
-                            job_link = a_tag.get("href")
-                            if not job_link:
-                                continue
-                            title = job.find("a", class_="jcs-JobTitle").get_text()
-                            company = job.find("span", attrs={"data-testid": "company-name"}).get_text()
-                            job_location = (job.find("div", attrs={"data-testid": "text-location"})
-                                            .get_text().split("·")[-1].strip())
-                            if job_id not in known_id:
-                                data.append({
-                                    "indeed_id": job_id,
-                                    "link": INDEED_URL + job_link,
-                                    "title": title,
-                                    "company": company,
-                                    "location": job_location,
-                                    "city": job_location.split(",")[0].strip() if job_location else "",
-                                })
-                                known_id.append(job_id)
-                                new_jobs_this_page += 1
-                        if new_jobs_this_page == 0:
-                            repeated_pages += 1
-                        else:
-                            repeated_pages = 0
-                        if repeated_pages >= 2:
-                            break
-                        page += 10
-        return data
-
     @staticmethod
     def get_text_from_selector(soup, css_selector):
         element = soup.select_one(css_selector)
         if element is None:
             return None
         return element.get_text()
+
 
     def parse_job_detail(self, job_details: dict) -> dict:
         """Browse a job description page to extract its data and complete its entry with the missing information"""
@@ -141,23 +86,69 @@ class JobFinder:
         })
         return job_details
 
-    def get_job(self, *, data: list[dict], keywords: list, locations: list, radii: list):
-        """Job finder main function/orchestrator, returns None or new data"""
-        self.get_cookies()
-        try:
-            self.find_job(data, keywords, locations, radii)
-            if len(data) == 0:
-                return None
+
+    def search(self, data: list[dict], keyword: str, location: str, radius: str, known_ids, evaluator, db) -> None:
+        page = 0
+        repeated_pages = 0
+        while page < self.num_of_pages * 10:
+            search_url = f"{INDEED_URL}/jobs?q={keyword}&l={location}%2C%20QC&radius={radius}&start={page}"
+            soup = BeautifulSoup(self.get_source(search_url), "html.parser")
+            jobs = soup.find_all("li", class_="css-1ac2h1w eu4oa1w0")
+            if not jobs:
+                break
+            new_jobs_this_page = 0
+            page_ids = set()
+            for job in jobs:
+                a_tag = job.find("a", attrs={"data-jk": True})
+                if not a_tag:
+                    continue
+                job_id = a_tag.get("data-jk")
+                if not job_id or job_id in page_ids or job_id in known_ids:
+                    continue
+                page_ids.add(job_id)
+                job_link = a_tag.get("href")
+                if not job_link:
+                    continue
+                title_tag = job.find("a", class_="jcs-JobTitle")
+                company_tag = job.find("span", attrs={"data-testid": "company-name"})
+                location_tag = job.find("div", attrs={"data-testid": "text-location"})
+                if not title_tag or not company_tag or not location_tag:
+                    continue
+                job_location = location_tag.get_text(strip=True).split("·")[-1].strip()
+                job_data = {
+                    "indeed_id": job_id,
+                    "link": INDEED_URL + job_link,
+                    "title": title_tag.get_text(strip=True),
+                    "company": company_tag.get_text(strip=True),
+                    "location": job_location,
+                    "city": job_location.split(",")[0].strip() if job_location else "",
+                }
+                self.get_source(job_data["link"])
+                job_data = self.parse_job_detail(job_data)
+                if not job_data.get("description"):
+                    continue
+                evaluated_job = evaluator.get_advice(job_data)
+                db.save_job(evaluated_job)
+                data.append(evaluated_job)
+                known_ids.add(job_id)
+                new_jobs_this_page += 1
+            if new_jobs_this_page == 0:
+                repeated_pages += 1
             else:
-                for x in range(len(data)):
-                    if data[x].get('description'):
-                        continue
-                    link = data[x].get("link")
-                    if not link.startswith(INDEED_URL):
-                        continue
-                    self.get_source(data[x]["link"])
-                    data[x] = self.parse_job_detail(data[x])
-                data = [job for job in data if job.get("description")]
+                repeated_pages = 0
+            if repeated_pages >= 2:
+                break
+            page += 10
+
+
+    def get_job(self, *, data: list[dict], keywords: list, locations: list, radii: list, evaluator, db):
+        self.get_cookies()
+        known_ids = {job["indeed_id"] for job in data}
+        try:
+            for location in locations:
+                for radius in radii:
+                    for keyword in keywords:
+                        self.search(data, keyword, location, radius, known_ids, evaluator, db)
         finally:
             self.driver.quit()
         return data

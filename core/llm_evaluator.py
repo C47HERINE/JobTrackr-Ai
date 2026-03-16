@@ -19,7 +19,7 @@ class Evaluator:
       return string
 
 
-    def send_chat(self, prompt: str, model: str = "gemma3:latest") -> str:
+    def send_chat(self, prompt: str, model: str = "gemma3:12b") -> str:
       payload = {
         "model": model,
         "messages": [
@@ -34,41 +34,39 @@ class Evaluator:
       return content.strip()
 
 
-    def get_advice(self, data: list):
-        for d in range(len(data)):
-            job_dict = data[d]
-            if job_dict.get("should_apply") in ("apply", "pass"):
-                continue
-            job_information = self.load_job_string(job_dict)
-            prompt = (
-                "You are a hiring-screening classifier. Decide whether the candidate is a match for this job.\n\n"
-                "Rules:\n"
-                "- The FIRST word of your reply MUST be exactly either: apply or pass (lowercase).\n"
-                "- After the first word, provide a clear explanation referencing evidence from the candidate context and the job description.\n"
-                "- The explanation should justify the decision and may include multiple sentences if needed.\n\n"
-                f"Candidate Context:\n{self.user_data}\n\n"
-                f"Job (JSON):\n{job_information}\n\n"
-                "Decision criteria:\n"
-                "- apply only if the candidate meets most core requirements and has no major missing blockers.\n"
-                "- pass if key requirements are missing or the role is clearly misaligned."
-            )
-            max_attempts = 3
-            attempt = 0
+    def get_advice(self, job_dict: dict) -> dict:
+        if job_dict.get("should_apply") in ("apply", "pass"):
+            return job_dict
+        job_information = self.load_job_string(job_dict)
+        prompt = (
+            "You are a hiring-screening classifier. Decide whether the candidate is a match for this job.\n\n"
+            "Rules:\n"
+            "- The FIRST word of your reply MUST be exactly either: apply or pass (lowercase).\n"
+            "- After the first word, provide a clear explanation referencing evidence from the candidate context and the job description.\n"
+            "- The explanation should justify the decision and may include multiple sentences if needed.\n\n"
+            f"Candidate Context:\n{self.user_data}\n\n"
+            f"Job (JSON):\n{job_information}\n\n"
+            "Decision criteria:\n"
+            "- apply only if the candidate meets most core requirements and has no major missing blockers.\n"
+            "- pass if key requirements are missing or the role is clearly misaligned."
+        )
+        max_attempts = 3
+        attempt = 0
+        decision = None
+        answer = None
+        while attempt < max_attempts:
+            answer = self.send_chat(prompt, model="gemma3:12b")
             decision = None
-            answer = None
-            while attempt < max_attempts:
-                answer = self.send_chat(prompt, model="gemma3:latest")
-                decision = None
-                for word in answer.lower().split()[:5]:
-                    word = word.strip(".,:;!?()[]\"'")
-                    if word in ("apply", "pass"):
-                        decision = word
-                        break
-                if decision:
-                    break
-                attempt += 1
-            if decision not in ("apply", "pass"):
-                decision = "error"
-            job_dict["should_apply"] = decision
-            job_dict["answer"] = answer
-        return data
+            words = answer.lower().split()
+            if words:
+                first_word = words[0].strip(".,:;!?()[]\"'")
+                if first_word in ("apply", "pass"):
+                    decision = first_word
+            if decision:
+                break
+            attempt += 1
+        if decision not in ("apply", "pass"):
+            decision = "error"
+        job_dict["should_apply"] = decision
+        job_dict["answer"] = answer
+        return job_dict
