@@ -1,5 +1,6 @@
+import time
 from threading import Lock
-from sqlalchemy import create_engine, Integer, String, Text, select
+from sqlalchemy import create_engine, Integer, String, Text, select, delete
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 
@@ -15,15 +16,15 @@ class JobList(Base):
     title: Mapped[str] = mapped_column(String(250), nullable=False)
     company: Mapped[str] = mapped_column(String(250), nullable=False)
     location: Mapped[str] = mapped_column(String(250), nullable=False)
-    job_type: Mapped[str] = mapped_column(String(250), nullable=True)
-    skills: Mapped[str] = mapped_column(String(500), nullable=True)
-    description: Mapped[str] = mapped_column(Text, nullable=True)
-    should_apply: Mapped[str] = mapped_column(String(250), nullable=True)
-    answer: Mapped[str] = mapped_column(Text, nullable=True)
-    time_stamp: Mapped[int] = mapped_column(Integer, nullable=True)
-    is_applied: Mapped[bool] = mapped_column(nullable=True)
-    city: Mapped[str] = mapped_column(String(250), nullable=True)
-
+    job_type: Mapped[str | None] = mapped_column(String(250), nullable=True)
+    skills: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    should_apply: Mapped[str | None] = mapped_column(String(250), nullable=True)
+    answer: Mapped[str | None] = mapped_column(Text, nullable=True)
+    time_stamp: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    is_applied: Mapped[bool | None] = mapped_column(nullable=True, default=False)
+    is_hidden: Mapped[bool] = mapped_column(nullable=False, default=False)
+    city: Mapped[str | None] = mapped_column(String(250), nullable=True)
 
 class JobRepository:
     def __init__(self):
@@ -32,9 +33,16 @@ class JobRepository:
         self.Session = sessionmaker(bind=self.engine)
         Base.metadata.create_all(self.engine)
 
+
     def load_jobs(self) -> list[dict]:
+        cutoff = int(time.time()) - (14 * 24 * 60 * 60)
         with self.Session() as session:
-            result = session.execute(select(JobList).order_by(JobList.time_stamp.desc()))
+            session.execute(
+                delete(JobList).where(JobList.time_stamp < cutoff, JobList.is_applied.is_(False))
+                )
+            session.commit()
+            result = session.execute(
+                select(JobList).where(JobList.is_hidden.is_(False)).order_by(JobList.time_stamp.desc()))
             return [job.__dict__ for job in result.scalars().all()]
 
 
@@ -87,3 +95,7 @@ class JobRepository:
                     self._create_job(job)
                 else:
                     self._update_by_indeed_id(job)
+
+
+    def save_job(self, job: dict):
+        self.save_jobs([job])

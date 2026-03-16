@@ -1,25 +1,53 @@
-# JobTrackr-Ai
+```markdown
+# JobTrackr-AI
 
-An AI-assisted job tracking application that helps collect, evaluate, and manage job opportunities from a centralized web interface.
+JobTrackr-AI is a local-first job search assistant that automates job discovery, enriches listings with scraped data, evaluates them with a local LLM, and provides a Flask web interface to review and manage opportunities.
+
+The system is designed for users who want full control over their job-search workflow, data, and evaluation logic without relying on external SaaS platforms.
 
 ---
 
 ## Overview
 
-JobTrackr-Ai is a Python application built to support the job search process. It combines automated job discovery, AI-based evaluation, persistent job storage, and a Flask web interface for reviewing and managing results.
+JobTrackr-AI combines automated job discovery, scraping, AI evaluation, and a web dashboard into a single Python application.
 
-The application periodically searches for jobs based on user-defined criteria, evaluates newly discovered listings with a local LLM, and stores the results in a SQLite database for later review.
+The system periodically searches job listings based on user-defined criteria, collects job details, evaluates them using a locally running LLM via Ollama, and stores results in a SQLite database. The web interface allows users to browse, filter, and manage tracked opportunities.
+
+Everything runs locally.
 
 ---
 
-## Current Features
+## Features
 
-- Automated job search based on configured keywords, locations, and radius
+- Automated job discovery using configurable keywords, locations, and search radius
+- Selenium + BeautifulSoup pipeline for scraping listings and job details
 - AI-powered job evaluation using a local LLM through Ollama
-- SQLite-backed job database managed with SQLAlchemy
-- Flask web interface for viewing and managing tracked jobs
-- Background scheduler for periodic search runs
-- Persistent user state to avoid unnecessary repeat runs
+- SQLite database managed with SQLAlchemy
+- Flask web interface for reviewing and managing job listings
+- Background search scheduler for periodic updates
+- Job deduplication using platform job IDs
+- Persistent state tracking to prevent redundant runs
+- Immediate job processing pipeline (scrape → evaluate → save)
+
+---
+
+## How It Works
+
+Each search cycle follows a streaming pipeline:
+
+1. Launch Selenium with Chrome
+2. Load an authenticated browser session using exported cookies
+3. Search for jobs using configured keywords and locations
+4. For each job listing:
+   - extract listing metadata
+   - open the job detail page
+   - scrape description, skills, and job type
+   - evaluate the job using the LLM
+   - store the result in the database
+5. Continue through remaining listings and pages
+6. Update the last run timestamp
+
+Jobs are processed one at a time to ensure each result is immediately saved.
 
 ---
 
@@ -32,33 +60,45 @@ The application periodically searches for jobs based on user-defined criteria, e
 - Selenium
 - BeautifulSoup4
 - Ollama
+- Local LLM (default: Gemma)
 
 ---
 
 ## Project Structure
 
-```text
-JobTrackr-Ai/
+```
+
+JobTrackr-AI/
 ├── main.py
 ├── requirements.txt
-├── app/                    # Flask app
-├── core/                   # Core logic
-│   ├── job_finder.py
-│   ├── llm_evaluator.py
-│   └── job_database.py
+├── app/                      # Flask application
+│
+├── core/                     # Core application logic
+│   ├── job_finder.py         # Selenium scraping pipeline
+│   ├── llm_evaluator.py      # LLM classification logic
+│   └── job_database.py       # SQLAlchemy job repository
+│
 ├── user/
-│   ├── search_config.json
-│   └── state.json
-└── data/                   # Optional app data directory
+│   ├── cookies/              # Exported browser cookies
+│   │   └── cookies.json
+│   ├── search_config.json    # Search configuration
+│   └── state.json            # Last run timestamp
+│
+└── data/                     # Optional runtime data
+
 ```
 
 ---
 
 ## Requirements
 
-- Python 3.x  
-- Ollama installed locally  
-- A supported browser and WebDriver for Selenium  
+- Python 3.10 or newer
+- **Google Chrome browser**
+- ChromeDriver compatible with your Chrome version
+- Ollama installed locally
+- A supported LLM model (example: Gemma)
+
+Chrome is required because Selenium controls a real Chrome instance for scraping and authenticated sessions.
 
 ---
 
@@ -66,28 +106,36 @@ JobTrackr-Ai/
 
 ### 1. Clone the repository
 
-```bash
-git clone https://github.com/C47HERINE/JobTrackr-Ai.git
-cd JobTrackr-Ai
 ```
 
-### 2. Create and activate a virtual environment
+git clone [https://github.com/C47HERINE/JobTrackr-AI.git](https://github.com/C47HERINE/JobTrackr-AI.git)
+cd JobTrackr-AI
 
-```bash
+```
+
+### 2. Create a virtual environment
+
+```
+
 python -m venv .venv
 source .venv/bin/activate
+
 ```
 
 Windows:
 
-```bash
+```
+
 .venv\Scripts\activate
+
 ```
 
 ### 3. Install dependencies
 
-```bash
+```
+
 pip install -r requirements.txt
+
 ```
 
 ### 4. Install Ollama
@@ -95,55 +143,151 @@ pip install -r requirements.txt
 Download and install Ollama:
 
 ```
-https://ollama.com/download
+
+[https://ollama.com/download](https://ollama.com/download)
+
 ```
 
-On first use the project may download the configured model automatically.  
-The default model can be changed in the evaluator configuration.
+Then download a model:
+
+```
+
+ollama pull gemma3:12b
+
+```
+
+---
+
+## Exporting Chrome Session Cookies
+
+Some job platforms limit access to job details or apply stricter rate limits to unauthenticated users.  
+JobTrackr-AI can reuse your authenticated browser session by loading cookies from Chrome.
+
+### 1. Install a Chrome cookie export extension
+
+Install a cookie exporter such as:
+
+**Get cookies.txt LOCALLY**
+
+Chrome Web Store:
+
+```
+
+[https://chrome.google.com/webstore/detail/get-cookiestxt-locally](https://chrome.google.com/webstore/detail/get-cookiestxt-locally)
+
+```
+
+Any extension capable of exporting cookies as JSON will work.
+
+---
+
+### 2. Log into the job platform
+
+Open Chrome and sign into the job platform you want to scrape.
+
+Example:
+
+```
+
+[https://indeed.com](https://indeed.com)
+
+```
+
+Make sure you are fully logged in and able to view job listings normally.
+
+---
+
+### 3. Export cookies
+
+1. Click the cookie export extension icon
+2. Export cookies for the current site
+3. Save the file in **JSON format**
+
+---
+
+### 4. Place the cookies file in the project
+
+Move the exported file to:
+
+```
+
+user/cookies/cookies.json
+
+```
+
+Example:
+
+```
+
+user/
+├── cookies/
+│   └── cookies.json
+
+```
+
+At runtime the scraper will load these cookies into the Selenium session to replicate your logged-in browser state.
 
 ---
 
 ## Configuration
 
-Before running the application, create or edit:
+Create or edit:
 
-`user/search_config.json`
+```
+
+user/search_config.json
+
+````
+
+Example:
 
 ```json
 {
-  "keywords": ["python", "data scientist", "machine learning"],
-  "locations": ["San Francisco", "New York", "Remote"],
-  "radii": 25
+  "keywords": ["python", "machine learning", "data scientist"],
+  "locations": ["Montreal", "Longueuil", "Brossard"],
+  "radii": [25]
 }
-```
+````
 
 Field descriptions:
 
-- **keywords** – search terms used to find job listings  
-- **locations** – target locations or remote options  
-- **radii** – search radius for location-based results  
+* **keywords** – job search terms
+* **locations** – search locations
+* **radii** – search radius values
 
-The application also uses `user/state.json` to track the last successful search run.
+The application also stores the timestamp of the last successful run in:
+
+```
+user/state.json
+```
+
+Example:
+
+```json
+{
+  "last_run": 0
+}
+```
 
 ---
 
-## Usage
+## Running the Application
 
-Start the application:
+Start the system:
 
-```bash
+```
 python main.py
 ```
 
 At startup the application will:
 
-1. Load the user search configuration  
-2. Run a scheduled job search cycle  
-3. Evaluate newly discovered jobs with the LLM  
-4. Save results to the database  
-5. Start the Flask web interface  
+1. Load search configuration
+2. Launch the background job search loop
+3. Scrape and evaluate jobs
+4. Save results to SQLite
+5. Start the Flask web interface
 
-The Flask app is typically available at:
+The web interface will be available at:
 
 ```
 http://127.0.0.1:5000
@@ -151,36 +295,23 @@ http://127.0.0.1:5000
 
 ---
 
-## How It Works
+## Job Data Stored
 
-Each search cycle follows this process:
+Each job record may include:
 
-1. Load saved jobs from the database  
-2. Search for jobs using the configured criteria  
-3. Identify jobs that have not already been marked with a final decision  
-4. Evaluate relevant jobs with the LLM  
-5. Save new or updated records  
-6. Update `user/state.json` with the latest run timestamp  
-
----
-
-## Job Data
-
-Tracked jobs may include:
-
-- Indeed ID  
-- Title  
-- Company  
-- Link  
-- Location  
-- Job type  
-- Skills  
-- Description  
-- AI recommendation  
-- AI answer  
-- Timestamp  
-- Application status  
-- City  
+* Job ID
+* Title
+* Company
+* Job URL
+* Location
+* City
+* Job type
+* Skills extracted from the page
+* Full description
+* AI decision (`apply`, `pass`, or `error`)
+* AI reasoning
+* Timestamp
+* Application status
 
 ---
 
@@ -188,28 +319,35 @@ Tracked jobs may include:
 
 Planned features include:
 
-- LLM-tailored CV generation based on selected job postings from the web app  
-- LLM mock interview support  
-- A settings route to manage user configuration and app data from the web interface  
-- A chat tab for direct interaction with the AI for broader job-search guidance  
-- A dedicated interview tracking page  
-- Search and filtering tools for interview preparation  
-- Automated application workflows for supported platforms  
-- User authentication and per-user data separation  
+* Interview tracking dashboard
+* LLM-assisted CV generation for selected jobs
+* Mock interview support
+* Improved filtering and search tools
+* Automated application workflows
+* User authentication and multi-user support
+* Settings interface for search configuration
+* AI chat assistant for job-search guidance
 
 ---
 
-## Notes
+## Status
 
-- This project is under active development.
-- Some planned features are not yet implemented.
-- Current behavior may change as the application evolves.
+This project is actively under development.
+
+The current version already supports:
+
+* automated job scraping
+* LLM evaluation
+* persistent storage
+* local web interface for review
+
+Additional features and UI improvements are planned.
 
 ---
 
 ## License
 
-This project is licensed under the **MIT License**.
+MIT License
 
 See the `LICENSE` file for details.
 
@@ -219,5 +357,9 @@ See the `LICENSE` file for details.
 
 Created by **C47HERINE**
 
-GitHub:  
-https://github.com/C47HERINE
+GitHub:
+
+[https://github.com/C47HERINE](https://github.com/C47HERINE)
+
+```
+```
