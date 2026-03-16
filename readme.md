@@ -1,9 +1,14 @@
 # JobTrackr-AI
 
-![Python](https://img.shields.io/badge/python-3.10%2B-blue)
-![Flask](https://img.shields.io/badge/framework-Flask-lightgrey)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+![Flask](https://img.shields.io/badge/Flask-backend-lightgrey)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-frontend-38B2AC)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-active%20development-orange)
+![Chrome](https://img.shields.io/badge/browser-Chrome-blue)
+![Ollama](https://img.shields.io/badge/LLM-Ollama-black)
+![GitHub last commit](https://img.shields.io/github/last-commit/C47HERINE/JobTrackr-AI)
+![GitHub issues](https://img.shields.io/github/issues/C47HERINE/JobTrackr-AI)
 
 JobTrackr-AI is a local-first job search assistant that automates job discovery, enriches listings with scraped data, evaluates them with a local LLM, and provides a Flask web interface to review and manage opportunities.
 
