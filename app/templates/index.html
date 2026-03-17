@@ -379,7 +379,12 @@
                                         </button>
                                         {% endif %}
 
-                                        {% if not job.is_applied %}
+                                        {% if job.should_apply == 'pass' and not job.is_applied %}
+                                        <button type="submit" name="hidden" value="true"
+                                                class="inline-flex h-10 items-center justify-center rounded-full bg-zinc-600 px-4 text-sm font-medium text-white transition hover:brightness-110 dark:bg-zinc-500">
+                                            Hide Job
+                                        </button>
+                                        {% elif not job.is_applied %}
                                         <button type="submit" name="applied" value="true"
                                                 class="inline-flex h-10 items-center justify-center rounded-full bg-blue-600 px-4 text-sm font-medium text-white transition hover:brightness-110 dark:bg-blue-500">
                                             Mark Applied

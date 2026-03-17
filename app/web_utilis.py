@@ -24,10 +24,14 @@ def filter_jobs(job_list):
     applied_filter = request.args.get("applied", "")
     filtered_results = []
     for job in job_list:
-        if decision_filter == "apply" and job.get("should_apply") != "apply":
+        if job.get("is_hidden"):
             continue
-        if decision_filter == "pass" and job.get("should_apply") != "pass":
-            continue
+        if decision_filter == "apply":
+            if job.get("should_apply") != "apply" or job.get("is_applied"):
+                continue
+        if decision_filter == "pass":
+            if job.get("should_apply") != "pass" or job.get("is_applied"):
+                continue
         if decision_filter == "applied" and not job.get("is_applied"):
             continue
         if title_filter and title_filter not in job.get("title", "").lower():

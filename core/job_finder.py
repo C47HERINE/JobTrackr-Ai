@@ -41,7 +41,6 @@ class JobFinder:
     def get_cookies(self):
         try:
             self.driver.get(INDEED_URL + "/")
-            time.sleep(3)
             if self.is_security_check():
                 self.wait_for_manual_resolution()
             with open("user/cookies/cookies.json", "r") as cookie_file:
@@ -66,7 +65,6 @@ class JobFinder:
     def get_source(self, url: str) -> str:
         """use webdriver to open page and get source, must load get_cookies to log in"""
         self.driver.get(url)
-        time.sleep(3)
         if self.is_security_check():
             self.wait_for_manual_resolution()
         return self.driver.page_source
@@ -114,6 +112,7 @@ class JobFinder:
         while page < self.num_of_pages * 10:
             search_url = f"{INDEED_URL}/jobs?q={keyword}&l={location}%2C%20QC&radius={radius}&start={page}"
             soup = BeautifulSoup(self.get_source(search_url), "html.parser")
+            time.sleep(3)
             jobs = soup.find_all("li", class_="css-1ac2h1w eu4oa1w0")
             if not jobs:
                 break
