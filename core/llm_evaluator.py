@@ -64,6 +64,7 @@ class Evaluator:
                 if first_word in ("apply", "pass"):
                     decision = first_word
             if decision:
+                print(job_dict["title"], decision)
                 break
             attempt += 1
         if decision not in ("apply", "pass"):

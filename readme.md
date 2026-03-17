@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-active%20development-orange)
 
-JobTrackr-AI is a local-first job search assistant that automates job discovery, enriches listings with scraped data, evaluates them with a local LLM, and provides a Flask web interface to review and manage opportunities.
+JobTrackr-AI is a local-first job search assistant that automates job discovery, enriches listings with scraped data, evaluates them with a LLM, and provides a Flask web interface to review and manage opportunities.
 
 The system is designed for users who want full control over their job-search workflow, data, and evaluation logic without relying on external SaaS platforms.
 
@@ -16,7 +16,7 @@ The system is designed for users who want full control over their job-search wor
 
 JobTrackr-AI combines automated job discovery, scraping, AI evaluation, and a web dashboard into a single Python application.
 
-The system periodically searches job listings based on user-defined criteria, collects job details, evaluates them using a locally running LLM via Ollama, and stores results in a SQLite database. The web interface allows users to browse, filter, and manage tracked opportunities.
+The system periodically searches job listings based on user-defined criteria, collects job details, evaluates them using Ollama, and stores results in a SQLite database. The web interface allows users to browse, filter, and manage tracked opportunities.
 
 Everything runs locally.
 
@@ -26,7 +26,7 @@ Everything runs locally.
 
 * Automated job discovery using configurable keywords, locations, search radius, and LLM model
 * Selenium + BeautifulSoup pipeline for scraping listings and job details
-* AI-powered job evaluation using a configurable local LLM through Ollama
+* AI-powered job evaluation using a configurable LLM through Ollama
 * SQLite database managed with SQLAlchemy
 * Flask web interface for reviewing and managing job listings
 * Background search scheduler for periodic updates
@@ -104,8 +104,8 @@ JobTrackr-AI/
 * Python 3.10 or newer
 * Google Chrome browser
 * ChromeDriver compatible with your Chrome version
-* Ollama installed locally
-* At least one Ollama model pulled locally
+* Ollama installed
+* At least one Ollama model
 
 Chrome is required because Selenium controls a real Chrome instance for scraping and authenticated sessions.
 
@@ -159,7 +159,7 @@ Some job platforms limit access to job details or apply stricter rate limits to 
 
 ### 1. Install a Chrome cookie export extension
 
-Install **Get cookies.txt LOCALLY**:
+Install **Get cookies.txt**:
 
 [https://chrome.google.com/webstore/detail/get-cookiestxt-locally](https://chrome.google.com/webstore/detail/get-cookiestxt-locally)
 
@@ -311,7 +311,7 @@ The current version already supports:
 * automated job scraping
 * LLM evaluation
 * persistent storage
-* local web interface for review
+* web interface for review (LAN by default if firewall allows it)
 
 Additional features and UI improvements are planned.
 

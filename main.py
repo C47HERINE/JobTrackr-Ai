@@ -3,7 +3,6 @@ from core import JobFinder, Evaluator, JobRepository
 from threading import Thread
 import json
 import time
-import logging
 
 
 db = JobRepository()
@@ -20,7 +19,7 @@ def search_job():
         if time.time() - state["last_run"] >= 21600:
             with open("user/search_config.json", "r") as file:
                 search_config = json.load(file)
-            evaluator = Evaluator(search_config['llm_model'])
+            evaluator = Evaluator(llm=search_config['llm_model'])
             finder = JobFinder()
             finder.get_job(
                 data=db.load_jobs(),

@@ -21,10 +21,29 @@ class JobFinder:
         self.num_of_pages = 10
 
 
+    def is_security_check(self) -> bool:
+        html = self.driver.page_source.lower()
+        title = self.driver.title.lower()
+        return (
+                "security check" in title
+                or "additional verification required" in html
+                or "cf-box-container" in html
+                )
+
+
+    def wait_for_manual_resolution(self):
+        print("Security check detected → waiting for manual solve...")
+        while self.is_security_check():
+            time.sleep(2)
+        print("Security check cleared → resuming")
+
+
     def get_cookies(self):
         try:
             self.driver.get(INDEED_URL + "/")
             time.sleep(3)
+            if self.is_security_check():
+                self.wait_for_manual_resolution()
             with open("user/cookies/cookies.json", "r") as cookie_file:
                 cookies = json.load(cookie_file)
             for cookie in cookies:
@@ -41,13 +60,15 @@ class JobFinder:
         except FileNotFoundError:
             print("cookies not found")
         except InvalidCookieDomainException:
-            self.num_of_pages = 1
+            pass
 
 
     def get_source(self, url: str) -> str:
         """use webdriver to open page and get source, must load get_cookies to log in"""
         self.driver.get(url)
         time.sleep(3)
+        if self.is_security_check():
+            self.wait_for_manual_resolution()
         return self.driver.page_source
 
 
@@ -136,8 +157,8 @@ class JobFinder:
                 repeated_pages += 1
             else:
                 repeated_pages = 0
-            if repeated_pages >= 2:
-                break
+            if repeated_pages >= 3:
+                 break
             page += 10
 
 
