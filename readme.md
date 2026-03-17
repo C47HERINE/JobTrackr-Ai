@@ -32,7 +32,7 @@ Everything runs locally.
 * Background search scheduler for periodic updates
 * Job deduplication using platform job IDs
 * Persistent state tracking to prevent redundant runs
-* Immediate job processing pipeline (scrape → evaluate → save)
+* Immediate job processing pipeline (scrape -> evaluate -> save)
 
 ---
 
@@ -222,10 +222,10 @@ Example:
 
 Field descriptions:
 
-* `keywords` – job search terms
-* `locations` – search locations
-* `radii` – search radius values
-* `llm_model` – Ollama model used for job evaluation
+* `keywords` : job search terms
+* `locations` : search locations
+* `radii` : search radius values
+* `llm_model` : Ollama model used for job evaluation
 
 The application also stores the timestamp of the last successful run in:
 
