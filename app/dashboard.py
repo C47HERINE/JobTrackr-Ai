@@ -13,7 +13,7 @@ def dashboard_blueprints(job_db):
         selected_job_id = request.args.get("job")
         selected_job = None
         if selected_job_id:
-            for job in job_list:
+            for job in filtered_jobs:
                 if str(job.get("id")) == selected_job_id:
                     selected_job = job
                     break
@@ -35,19 +35,18 @@ def dashboard_blueprints(job_db):
         job_list = normalize_job_list(job_db.load_jobs())
         decision_value = request.form.get("decision")
         applied_clicked = request.form.get("applied") == "true"
+        hidden_clicked = request.form.get("hidden") == "true"
         next_url = request.form.get("next")
         for job in job_list:
             if str(job.get("id")) == str(job_id):
                 if decision_value is not None and decision_value != "":
                     job["should_apply"] = decision_value
                 if applied_clicked:
-                    if applied_clicked:
-                        if not job.get("is_applied"):
-                            job["is_applied"] = True
-                        else:
-                            job["is_applied"] = False
+                    job["is_applied"] = not job.get("is_applied")
+                if hidden_clicked:
+                    job["is_hidden"] = True
+                job_db.save_job(job)
                 break
-        job_db.save_jobs(job_list)
         if next_url:
             return redirect(next_url)
         return redirect(url_for("dashboard.index", job=job_id))

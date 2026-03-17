@@ -83,6 +83,7 @@ class JobRepository:
                 job_to_update.time_stamp = job['time_stamp']
                 job_to_update.is_applied = job['is_applied']
                 job_to_update.city = job['city']
+                job_to_update.is_hidden = job['is_hidden']
                 session.commit()
 
 
