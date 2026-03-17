@@ -20,7 +20,7 @@ def search_job():
             with open("user/search_config.json", "r") as file:
                 search_config = json.load(file)
             evaluator = Evaluator(llm=search_config['llm_model'])
-            finder = JobFinder()
+            finder = JobFinder(indeed_url=search_config['indeed_url'])
             finder.get_job(
                 data=db.load_jobs(),
                 keywords=search_config["keywords"],
