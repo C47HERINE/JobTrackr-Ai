@@ -7,11 +7,9 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
 
-INDEED_URL = "https://ca.indeed.com"
-
 
 class JobFinder:
-    def __init__(self):
+    def __init__(self, indeed_url):
         self.options = Options()
         self.options.add_argument("--disable-blink-features=AutomationControlled")
         self.options.add_experimental_option("excludeSwitches", ["enable-automation"])
@@ -19,6 +17,7 @@ class JobFinder:
         self.driver = webdriver.Chrome(options=self.options)
         self.driver.execute_script("""Object.defineProperty(navigator, 'webdriver', {get: () => undefined})""")
         self.num_of_pages = 10
+        self.url = indeed_url
 
 
     def is_security_check(self) -> bool:
@@ -40,7 +39,7 @@ class JobFinder:
 
     def get_cookies(self):
         try:
-            self.driver.get(INDEED_URL + "/")
+            self.driver.get(self.url + "/")
             if self.is_security_check():
                 self.wait_for_manual_resolution()
             with open("user/cookies/cookies.json", "r") as cookie_file:
@@ -110,7 +109,7 @@ class JobFinder:
         page = 0
         repeated_pages = 0
         while page < self.num_of_pages * 10:
-            search_url = f"{INDEED_URL}/jobs?q={keyword}&l={location}%2C%20QC&radius={radius}&start={page}"
+            search_url = f"{self.url}/jobs?q={keyword}&l={location}%2C%20QC&radius={radius}&start={page}"
             soup = BeautifulSoup(self.get_source(search_url), "html.parser")
             time.sleep(3)
             jobs = soup.find_all("li", class_="css-1ac2h1w eu4oa1w0")
@@ -137,7 +136,7 @@ class JobFinder:
                 job_location = location_tag.get_text(strip=True).split("·")[-1].strip()
                 job_data = {
                     "indeed_id": job_id,
-                    "link": INDEED_URL + job_link,
+                    "link": self.url + job_link,
                     "title": title_tag.get_text(strip=True),
                     "company": company_tag.get_text(strip=True),
                     "location": job_location,

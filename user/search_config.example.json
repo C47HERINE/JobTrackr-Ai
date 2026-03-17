@@ -7,5 +7,6 @@
   ],
   "locations": ["city"],
   "radii": ["15", "25"],
-  "llm_model": "gemma3:12b"
+  "llm_model": "gemma3:12b",
+  "INDEED_URL": "https://indeed.com"
 }
