@@ -22,7 +22,6 @@ def search_job():
             evaluator = Evaluator(llm=search_config['llm_model'])
             finder = JobFinder(indeed_url=search_config['indeed_url'])
             finder.get_job(
-                data=db.load_jobs(),
                 keywords=search_config["keywords"],
                 locations=search_config["locations"],
                 radii=search_config["radii"],

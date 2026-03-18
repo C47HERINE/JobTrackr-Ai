@@ -160,8 +160,9 @@ class JobFinder:
             page += 10
 
 
-    def get_job(self, *, data: list[dict], keywords: list, locations: list, radii: list, evaluator, db):
+    def get_job(self, *, keywords: list, locations: list, radii: list, evaluator, db):
         self.get_cookies()
+        data = db.load_jobs()
         known_ids = {job["indeed_id"] for job in data}
         try:
             for location in locations:

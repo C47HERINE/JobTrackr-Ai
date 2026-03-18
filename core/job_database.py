@@ -42,7 +42,7 @@ class JobRepository:
                 )
             session.commit()
             result = session.execute(
-                select(JobList).where(JobList.is_hidden.is_(False)).order_by(JobList.time_stamp.desc()))
+                select(JobList).order_by(JobList.time_stamp.desc()))
             return [job.__dict__ for job in result.scalars().all()]
 
 
