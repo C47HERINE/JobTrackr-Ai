@@ -10,12 +10,16 @@ app = create_app(db)
 
 
 def search_job():
+    """Background loop that runs job searches on a fixed interval."""
+    # Load last successful run time or initialize state if first run
     while True:
         try:
             with open("user/state.json", "r") as json_file:
                 state = json.load(json_file)
         except FileNotFoundError:
             state = {"last_run": 0}
+
+        # Run search every 6 hours and build runtime services from config
         if time.time() - state["last_run"] >= 21600:
             with open("user/search_config.json", "r") as file:
                 search_config = json.load(file)
@@ -27,10 +31,11 @@ def search_job():
                 radii=search_config["radii"],
                 evaluator=evaluator,
                 db=db
-            )
+                )
             state["last_run"] = int(time.time())
             with open("user/state.json", "w") as json_file:
                 json.dump(state, json_file, indent=4)
+
         time.sleep(3600)
 
 

@@ -5,10 +5,12 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 
 class Base(DeclarativeBase):
+    """Base model."""
     pass
 
 
 class JobList(Base):
+    """Jobs table."""
     __tablename__ = "jobs"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     indeed_id: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
@@ -26,7 +28,9 @@ class JobList(Base):
     is_hidden: Mapped[bool] = mapped_column(nullable=False, default=False)
     city: Mapped[str | None] = mapped_column(String(250), nullable=True)
 
+
 class JobRepository:
+    """Job persistence helpers."""
     def __init__(self):
         self.write_lock = Lock()
         self.engine = create_engine("sqlite:///data/jobs.db", echo=False)
@@ -35,11 +39,27 @@ class JobRepository:
 
 
     def load_jobs(self) -> list[dict]:
-        cutoff = int(time.time()) - (14 * 24 * 60 * 60)
+        """Return rows as dict-like objects containing jobs and remove stale ones."""
+        cutoff = int(time.time()) - (5 * 24 * 60 * 60)
+        hidden_cutoff = int(time.time()) - (14 * 24 * 60 * 60)
         with self.Session() as session:
+
+            # Drop old visible jobs to avoid keeping dead postings.
             session.execute(
-                delete(JobList).where(JobList.time_stamp < cutoff, JobList.is_applied.is_(False))
-                )
+                delete(JobList).where(
+                    JobList.time_stamp < cutoff,
+                    JobList.is_applied.is_(False),
+                    JobList.is_hidden.is_(False))
+                    )
+
+            # Drop old hidden jobs since they are already out of the UI.
+            session.execute(
+                delete(JobList).where(
+                    JobList.time_stamp < hidden_cutoff,
+                    JobList.is_applied.is_(False),
+                    JobList.is_hidden.is_(True))
+                    )
+
             session.commit()
             result = session.execute(
                 select(JobList).order_by(JobList.time_stamp.desc()))
@@ -47,6 +67,7 @@ class JobRepository:
 
 
     def _create_job(self, job: dict):
+        """Insert a new job row from the scraped payload."""
         with self.Session() as session:
             new_job = JobList(
                 indeed_id=job['indeed_id'],
@@ -62,14 +83,16 @@ class JobRepository:
                 time_stamp=job['time_stamp'],
                 is_applied=job['is_applied'],
                 city=job['city']
-            )
+                )
             session.add(new_job)
             session.commit()
 
 
     def _update_by_indeed_id(self, job: dict):
+        """Refresh an existing row using indeed_id as the stable key."""
         with self.Session() as session:
-            job_to_update = session.execute(select(JobList).where(JobList.indeed_id == job['indeed_id'])).scalar_one_or_none()
+            job_to_update = session.execute(
+                select(JobList).where(JobList.indeed_id == job['indeed_id'])).scalar_one_or_none()
             if job_to_update:
                 job_to_update.title = job['title']
                 job_to_update.link = job['link']
@@ -88,10 +111,12 @@ class JobRepository:
 
 
     def save_jobs(self, new_jobs: list[dict]):
+        """Create or update jobs in one locked write pass."""
         with self.write_lock:
             all_jobs = self.load_jobs()
             existing_ids = [job['indeed_id'] for job in all_jobs]
             for job in new_jobs:
+                # Insert if new, otherwise update the existing record.
                 if job["indeed_id"] not in existing_ids:
                     self._create_job(job)
                 else:
@@ -99,4 +124,5 @@ class JobRepository:
 
 
     def save_job(self, job: dict):
+        """Convenience wrapper for saving one job."""
         self.save_jobs([job])

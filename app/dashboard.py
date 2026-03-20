@@ -3,6 +3,7 @@ from .web_utilis import filter_jobs, list_cities, compute_statistics, normalize_
 
 
 def dashboard_blueprints(job_db):
+    """Create dashboard blueprint with injected job_db dependency."""
     bp = Blueprint("dashboard", __name__)
 
 
@@ -12,11 +13,15 @@ def dashboard_blueprints(job_db):
         filtered_jobs = filter_jobs(job_list)
         selected_job_id = request.args.get("job")
         selected_job = None
+
+        # Find selected job in filtered list
         if selected_job_id:
             for job in filtered_jobs:
                 if str(job.get("id")) == selected_job_id:
                     selected_job = job
                     break
+
+        # Default to first job if none selected
         if not selected_job and filtered_jobs:
             selected_job = filtered_jobs[0]
         statistics = compute_statistics(job_list)
@@ -27,7 +32,7 @@ def dashboard_blueprints(job_db):
             job=selected_job,
             cities=city_list,
             stats=statistics
-        )
+            )
 
 
     @bp.route("/job/<job_id>/update", methods=["POST"])
@@ -37,6 +42,8 @@ def dashboard_blueprints(job_db):
         applied_clicked = request.form.get("applied") == "true"
         hidden_clicked = request.form.get("hidden") == "true"
         next_url = request.form.get("next")
+
+        # Locate and update matching job
         for job in job_list:
             if str(job.get("id")) == str(job_id):
                 if decision_value is not None and decision_value != "":
@@ -60,5 +67,6 @@ def dashboard_blueprints(job_db):
     @bp.route("/reload")
     def reload_jobs():
         return redirect(url_for("dashboard.index"))
+
 
     return bp
