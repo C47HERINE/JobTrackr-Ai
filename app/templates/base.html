@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{% block title %}JobTrackr AI{% endblock %}</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+          darkMode: "media",
+          theme: {
+            extend: {
+              borderRadius: {
+                xl2: "18px",
+                xl3: "24px"
+              },
+              boxShadow: {
+                soft: "0 10px 30px rgba(15, 23, 42, 0.10)",
+                panel: "0 8px 24px rgba(15, 23, 42, 0.08)",
+                pop: "0 18px 48px rgba(15, 23, 42, 0.18)"
+              }
+            }
+          }
+        }
+    </script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="h-screen overflow-hidden bg-white text-zinc-900 dark:bg-black dark:text-zinc-100">
+    {% block content %}{% endblock %}
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

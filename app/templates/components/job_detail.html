@@ -1,0 +1,95 @@
+<section id="jobDetailSection" class="order-2 min-h-0 flex-1 overflow-hidden lg:min-h-0 lg:col-span-8 xl:col-span-9 lg:order-none">
+    <div id="jobDetailCard"
+         class="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-xl3 border border-zinc-200/80 bg-white/90 shadow-panel dark:border-zinc-800/80 dark:bg-zinc-900/90">
+
+        {% if job %}
+        <div class="shrink-0 border-b border-zinc-200/80 px-4 py-4 dark:border-zinc-800/80 md:px-5">
+            <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div class="min-w-0 flex-1">
+                    <div class="text-lg font-semibold tracking-tight">{{ job.title }}</div>
+                    <div class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ job.company }} • {{ job.location }}</div>
+                </div>
+
+                <form method="POST" action="/job/{{ job.id }}/update"
+                      class="flex flex-wrap items-center gap-2 xl:max-w-[760px] xl:justify-end"
+                      id="jobUpdateForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="next" value="{{ request.url }}">
+                    <input type="hidden" name="active_tab" id="activeTabInput" value="desc">
+
+                    {% if job.should_apply != 'apply' and not job.is_applied %}
+                    <button type="submit" name="decision" value="apply"
+                            class="inline-flex h-10 items-center justify-center rounded-full bg-green-600 px-4 text-sm font-medium text-white transition hover:brightness-110 dark:bg-green-500">
+                        Mark Apply
+                    </button>
+                    {% endif %}
+
+                    {% if job.should_apply != 'pass' %}
+                    <button type="submit" name="decision" value="pass"
+                            class="inline-flex h-10 items-center justify-center rounded-full bg-red-600 px-4 text-sm font-medium text-white transition hover:brightness-110 dark:bg-red-500">
+                        Mark Pass
+                    </button>
+                    {% endif %}
+
+                    {% if job.should_apply == 'pass' and not job.is_applied %}
+                    <button type="submit" name="hidden" value="true"
+                            class="inline-flex h-10 items-center justify-center rounded-full bg-zinc-600 px-4 text-sm font-medium text-white transition hover:brightness-110 dark:bg-zinc-500">
+                        Hide Job
+                    </button>
+                    {% elif not job.is_applied %}
+                    <button type="submit" name="applied" value="true"
+                            class="inline-flex h-10 items-center justify-center rounded-full bg-blue-600 px-4 text-sm font-medium text-white transition hover:brightness-110 dark:bg-blue-500">
+                        Mark Applied
+                    </button>
+                    {% else %}
+                    <button type="submit" name="applied" value="true"
+                            class="inline-flex h-10 items-center justify-center rounded-full bg-blue-50 px-4 text-sm font-medium text-blue-700 transition hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-500/20">
+                        Applied
+                    </button>
+                    {% endif %}
+
+                    <a href="{{ job.link }}" target="_blank" rel="noopener noreferrer"
+                       class="inline-flex h-10 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 px-4 text-sm font-medium text-zinc-900 transition hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700">
+                        Indeed
+                    </a>
+                </form>
+            </div>
+        </div>
+
+        <div class="shrink-0 border-b border-zinc-200/80 px-4 dark:border-zinc-800/80 md:px-5">
+            <div class="flex h-12 items-center gap-5 overflow-x-auto">
+                <button type="button" id="tabDescBtn"
+                        class="h-full whitespace-nowrap border-b-2 border-blue-600 text-sm font-medium text-blue-600 dark:border-blue-400 dark:text-blue-400">
+                    Description
+                </button>
+                <button type="button" id="tabAnswerBtn"
+                        class="h-full whitespace-nowrap border-b-2 border-transparent text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+                    Answer
+                </button>
+            </div>
+        </div>
+
+        <div id="desc" class="panel-scroll hidden min-h-0 flex-1 overflow-y-auto px-5 py-4 md:px-5 lg:px-5">
+            <div class="max-w-none text-left whitespace-pre-wrap break-words text-[15px] leading-8 text-zinc-900 dark:text-zinc-100">
+                {{ job.description | trim }}
+            </div>
+        </div>
+
+        <div id="answer" class="panel-scroll hidden min-h-0 flex-1 overflow-y-auto px-5 py-4 md:px-5 lg:px-5">
+            <div class="max-w-none text-left whitespace-pre-wrap break-words text-[15px] leading-8 text-zinc-900 dark:text-zinc-100">
+                {{ job.answer | trim }}
+            </div>
+        </div>
+        {% else %}
+        <div class="flex min-h-[320px] flex-1 items-center justify-center p-6">
+            <div class="max-w-sm text-center">
+                <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                    <i data-lucide="inbox" class="h-6 w-6"></i>
+                </div>
+                <div class="text-base font-semibold">No job selected</div>
+                <div class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Choose a job from the list to view its details.</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
